@@ -1,0 +1,2854 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>12-р Анги — Англи Хэлний Интерактив Платформ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    @keyframes popIn {
+      0% {
+        opacity: 0;
+        transform: translateY(8px) scale(0.985);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .animate-pop {
+      animation: popIn 0.24s ease-out forwards;
+    }
+
+    /* Custom scrollbar for clean lists */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen antialiased selection:bg-indigo-600 selection:text-white">
+  <!-- Мэдэгдлийн самбар (Toast / Message Box — alert ашиглахгүй) -->
+  <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full px-4 sm:px-0 pointer-events-none"></div>
+
+  <!-- ===================================================================== -->
+  <!-- 1. БҮРТГҮҮЛЭХ ДЭЛГЭЦ ("ТА СУРАГЧ УУ, БАГШ УУ?")                      -->
+  <!-- ===================================================================== -->
+  <section id="auth-screen" class="min-h-screen flex items-center justify-center p-4 sm:p-6 bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900">
+    <div class="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-200/80 overflow-hidden animate-pop">
+      <!-- Дээд хэсэг -->
+      <div class="bg-gradient-to-r from-indigo-600 via-indigo-700 to-violet-700 px-6 py-7 sm:px-9 text-white">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm text-xs font-semibold tracking-wide mb-3">
+          <span>🇬🇧</span>
+          <span>12-Р АНГИ • АНГЛИ ХЭЛНИЙ СУРГАЛТ</span>
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Бүртгүүлэх</h1>
+        <p class="text-indigo-100 text-sm mt-1.5 leading-relaxed">
+          Эхлээд таны үүргийг сонгоно уу. Сурагч эсвэл багшаар бүртгүүлэн орсноор үгсийн сан, тест, тоглоом болон онооны самбарт нэвтэрнэ.
+        </p>
+      </div>
+
+      <form id="register-form" class="p-6 sm:p-9 space-y-6" novalidate>
+        <!-- Алхам 1: Та сурагч уу, багш уу? -->
+        <div>
+          <span class="block text-sm font-bold text-slate-800 mb-3">
+            Та сурагч уу, багш уу? <span class="text-rose-500">*</span>
+          </span>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <button
+              type="button"
+              id="role-choice-student"
+              data-role-choice="student"
+              class="role-choice-btn p-4 rounded-2xl border-2 text-left transition cursor-pointer flex items-start gap-3.5 border-indigo-600 bg-indigo-50/70 ring-2 ring-indigo-500/20"
+            >
+              <span class="w-11 h-11 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-xl shrink-0 shadow-sm">
+                🎒
+              </span>
+              <div>
+                <div class="font-extrabold text-slate-900 text-base">Сурагч</div>
+                <div class="text-xs text-slate-600 mt-0.5 leading-relaxed">
+                  12-р ангийн бүлэг ба багшаа сонгож үг цээжлэх, quiz тоглох, оноо цуглуулах
+                </div>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              id="role-choice-teacher"
+              data-role-choice="teacher"
+              class="role-choice-btn p-4 rounded-2xl border-2 text-left transition cursor-pointer flex items-start gap-3.5 border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50"
+            >
+              <span class="w-11 h-11 rounded-xl bg-violet-100 text-violet-700 flex items-center justify-center text-xl shrink-0">
+                👩‍🏫
+              </span>
+              <div>
+                <div class="font-extrabold text-slate-900 text-base">Багш</div>
+                <div class="text-xs text-slate-600 mt-0.5 leading-relaxed">
+                  Шинэ үг/quiz нэмэх, багш &amp; сурагч нэмэх/устгах, сурагчдын оноо ба ахицыг харах
+                </div>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- СУРАГЧИЙН БҮРТГЭЛИЙН ТАЛБАРУУД -->
+        <div id="student-reg-fields" class="space-y-5 bg-slate-50/90 p-4 sm:p-5 rounded-2xl border border-slate-200/90">
+          <div>
+            <label for="student-name" class="block text-sm font-bold text-slate-800 mb-1.5">
+              Сурагчийн нэр <span class="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="student-name"
+              name="studentName"
+              placeholder="Жишээ нь: Тэмүүлэн"
+              class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition text-sm sm:text-base"
+            />
+            <p id="student-name-error" class="hidden text-xs font-semibold text-rose-600 mt-1.5">
+              Сурагчийн нэрийг дор хаяж 2 үсэгтэй оруулна уу.
+            </p>
+          </div>
+
+          <div>
+            <span class="block text-sm font-bold text-slate-800 mb-2">
+              12-р ангийн бүлэг сонгох (8 бүлэг) <span class="text-rose-500">*</span>
+            </span>
+            <div id="class-grid" class="grid grid-cols-4 gap-2.5">
+              <!-- JS-ээр 12а .. 12ж товчнууд үүснэ -->
+            </div>
+            <p id="class-error" class="hidden text-xs font-semibold text-rose-600 mt-1.5">
+              12-р ангийн 8 бүлгээс өөрийн бүлгийг сонгоно уу.
+            </p>
+          </div>
+
+          <div>
+            <label for="student-teacher-select" class="block text-sm font-bold text-slate-800 mb-1.5">
+              Бүртгэлтэй багшаа сонгох <span class="text-rose-500">*</span>
+            </label>
+            <select
+              id="student-teacher-select"
+              class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm sm:text-base"
+            >
+              <!-- JS-ээр бүртгэлтэй багш нар орно -->
+            </select>
+            <p id="teacher-select-error" class="hidden text-xs font-semibold text-rose-600 mt-1.5">
+              Багшаа сонгоно уу.
+            </p>
+          </div>
+        </div>
+
+        <!-- БАГШИЙН БҮРТГЭЛИЙН ТАЛБАРУУД -->
+        <div id="teacher-reg-fields" class="hidden space-y-4 bg-violet-50/70 p-4 sm:p-5 rounded-2xl border border-violet-200">
+          <div>
+            <label for="teacher-reg-name" class="block text-sm font-bold text-slate-800 mb-1.5">
+              Багшийн нэр <span class="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="teacher-reg-name"
+              placeholder="Жишээ нь: Д. Энхтуяа багш"
+              class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition text-sm sm:text-base"
+            />
+            <p id="teacher-name-error" class="hidden text-xs font-semibold text-rose-600 mt-1.5">
+              Багшийн нэрийг дор хаяж 2 үсэгтэй оруулна уу.
+            </p>
+          </div>
+
+          <div>
+            <label for="teacher-reg-subject" class="block text-sm font-bold text-slate-800 mb-1.5">
+              Хичээлийн чиглэл / нэмэлт тэмдэглэл <span class="text-slate-400 font-normal">(заавал биш)</span>
+            </label>
+            <input
+              type="text"
+              id="teacher-reg-subject"
+              placeholder="Жишээ нь: 12-р ангийн IELTS & Academic English"
+              class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500 transition text-sm"
+            />
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          id="register-submit-btn"
+          class="w-full py-3.5 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white font-extrabold text-base shadow-lg shadow-indigo-600/25 transition flex items-center justify-center gap-2 cursor-pointer"
+        >
+          <span id="register-submit-label">Сурагчаар бүртгүүлж орох</span>
+          <span>→</span>
+        </button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- 2. ҮНДСЭН СИСТЕМ (БҮРТГҮҮЛСНИЙ ДАРАА ХАРАГДАНА)                      -->
+  <!-- ===================================================================== -->
+  <div id="main-app" class="hidden min-h-screen flex flex-col">
+    <!-- Дээд навигацийн самбар -->
+    <header class="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-200 shadow-sm">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 py-3.5">
+          <!-- Хэрэглэгчийн мэдээлэл ба үүрэг -->
+          <div class="flex items-center gap-3 min-w-0">
+            <div id="header-avatar" class="w-11 h-11 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-extrabold text-base shrink-0 shadow-sm">
+              🎒
+            </div>
+            <div class="min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span id="header-user-name" class="font-extrabold text-slate-900 text-sm sm:text-base truncate">Хэрэглэгч</span>
+                <span id="header-role-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800">
+                  Сурагч
+                </span>
+                <span id="header-extra-info" class="text-xs font-semibold text-slate-600 bg-slate-100 px-2.5 py-0.5 rounded-full">
+                  12а • Багш: —
+                </span>
+              </div>
+              <p id="header-sub-status" class="text-xs text-slate-500 mt-0.5 truncate">
+                Түвшин: Суралцагч (Level 1)
+              </p>
+            </div>
+          </div>
+
+          <!-- Оноо / Түвшин ба Гарах/Солих товч -->
+          <div class="flex items-center justify-between sm:justify-end gap-2.5 sm:gap-3">
+            <div class="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-950">
+              <span class="text-base">⭐</span>
+              <span class="text-xs font-semibold text-amber-700 hidden sm:inline">Нийт оноо:</span>
+              <span id="header-score" class="font-extrabold text-sm sm:text-base">0</span>
+              <span id="header-level-pill" class="ml-1 px-2 py-0.5 rounded-md bg-amber-200/80 text-amber-900 text-[11px] font-extrabold">
+                Lv.1
+              </span>
+            </div>
+
+            <button
+              type="button"
+              id="logout-btn"
+              class="px-3.5 py-2 rounded-xl border border-slate-300 hover:bg-slate-100 active:bg-slate-200 text-slate-700 text-xs sm:text-sm font-bold transition cursor-pointer shrink-0"
+            >
+              Гарах / Солих
+            </button>
+          </div>
+        </div>
+
+        <!-- Үндсэн 2 таб: Сурагч ба Багш -->
+        <nav aria-label="Үндсэн табууд" class="flex gap-2 pb-3 pt-0.5">
+          <button
+            type="button"
+            id="main-tab-student"
+            data-main-tab="student"
+            class="main-tab-btn flex-1 sm:flex-initial px-5 py-2.5 rounded-xl font-extrabold text-sm transition flex items-center justify-center gap-2 cursor-pointer bg-indigo-600 text-white shadow-sm"
+          >
+            <span>🎒</span>
+            <span>Сурагч</span>
+          </button>
+          <button
+            type="button"
+            id="main-tab-teacher"
+            data-main-tab="teacher"
+            class="main-tab-btn flex-1 sm:flex-initial px-5 py-2.5 rounded-xl font-extrabold text-sm transition flex items-center justify-center gap-2 cursor-pointer bg-slate-100 text-slate-700 hover:bg-slate-200"
+          >
+            <span>👩‍🏫</span>
+            <span>Багш</span>
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Үндсэн агуулгын бүс -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <!-- =================================================================== -->
+      <!-- СУРАГЧИЙН ТАБ ("Сурагч")                                            -->
+      <!-- =================================================================== -->
+      <section id="student-section" class="space-y-8 animate-pop">
+        <!-- Статистик ба Түвшингийн явц -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Нийт оноо &amp; Түвшин</p>
+            <div class="flex items-baseline gap-2 mt-1">
+              <span id="stu-stat-score" class="text-3xl font-extrabold text-indigo-600">0</span>
+              <span id="stu-stat-level" class="text-xs font-extrabold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700">
+                Level 1
+              </span>
+            </div>
+            <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden mt-3">
+              <div id="stu-level-bar" class="h-full bg-indigo-600 rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+            <p id="stu-level-hint" class="text-[11px] text-slate-500 mt-1.5">Дараагийн түвшинд 100 оноо</p>
+          </div>
+
+          <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Дараалсан зөв хариулт</p>
+              <p id="stu-stat-streak" class="text-3xl font-extrabold text-amber-600 mt-1">0</p>
+              <p class="text-xs text-slate-500 mt-1">Хамгийн дээд: <span id="stu-stat-best-streak" class="font-bold text-slate-700">0</span></p>
+            </div>
+            <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-2xl">
+              🔥
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Нарийвчлал (Accuracy)</p>
+              <p id="stu-stat-accuracy" class="text-3xl font-extrabold text-emerald-600 mt-1">0%</p>
+              <p id="stu-stat-answered-summary" class="text-xs text-slate-500 mt-1">0 / 0 зөв хариулсан</p>
+            </div>
+            <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-2xl">
+              🎯
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Цээжилсэн үгс</p>
+              <p id="stu-stat-studied-words" class="text-3xl font-extrabold text-violet-600 mt-1">0 / 0</p>
+              <p class="text-xs text-slate-500 mt-1">Карт бүрд +10 оноо</p>
+            </div>
+            <div class="w-12 h-12 rounded-2xl bg-violet-50 text-violet-600 flex items-center justify-center text-2xl">
+              🃏
+            </div>
+          </div>
+        </div>
+
+        <!-- Сурагчийн дотоод хэсгүүд -->
+        <div class="flex flex-wrap gap-2 border-b border-slate-200 pb-3">
+          <button
+            type="button"
+            id="stu-sub-vocab"
+            class="stu-sub-btn px-4 py-2 rounded-xl text-sm font-bold bg-slate-900 text-white transition cursor-pointer"
+          >
+            🃏 Үгсийн Карт &amp; Дуудлага
+          </button>
+          <button
+            type="button"
+            id="stu-sub-game"
+            class="stu-sub-btn px-4 py-2 rounded-xl text-sm font-bold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition cursor-pointer"
+          >
+            🎮 Quiz &amp; Үг/Утгын Тоглоом
+          </button>
+          <button
+            type="button"
+            id="stu-sub-leaderboard"
+            class="stu-sub-btn px-4 py-2 rounded-xl text-sm font-bold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition cursor-pointer"
+          >
+            🏆 Тэргүүлэгчид
+          </button>
+        </div>
+
+        <!-- 1. Үгсийн картууд (Flashcards + Web Speech API en-US + Цээжилсэн тэмдэглэгээ) -->
+        <div id="stu-panel-vocab" class="space-y-5">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+            <div>
+              <h2 class="text-lg sm:text-xl font-extrabold text-slate-900">Англи Үгсийн Картууд</h2>
+              <p class="text-xs sm:text-sm text-slate-500">
+                Дуудлагыг сонсох товчийг дарж англи дуудлагыг сонсоорой. "Цээжилсэн (+10 оноо)" дарснаар оноо нэмэгдэнэ.
+              </p>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-2.5">
+              <select
+                id="vocab-category-filter"
+                class="px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="ALL">Бүх ангилал / түвшин</option>
+                <option value="Academic">Academic</option>
+                <option value="Daily Life">Daily Life</option>
+                <option value="Exam Prep">Exam Prep</option>
+                <option value="Grammar & Idioms">Grammar &amp; Idioms</option>
+              </select>
+              <input
+                type="search"
+                id="vocab-search-input"
+                placeholder="Үг эсвэл орчуулгаар хайх..."
+                class="px-4 py-2 rounded-xl border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+          </div>
+
+          <div id="flashcards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <!-- JS-ээр үгийн картууд үүснэ -->
+          </div>
+        </div>
+
+        <!-- 2. Интерактив Quiz & Үг/Утгын Тоглоомын горим -->
+        <div id="stu-panel-game" class="hidden space-y-6">
+          <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-5 sm:p-8">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-slate-100">
+              <div>
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-bold mb-1.5">
+                  <span>⚡</span>
+                  <span>ИНТЕРАКТИВ ГОРИМ</span>
+                </div>
+                <h2 class="text-xl font-extrabold text-slate-900">Quiz Тест &amp; Үг/Утгын Тоглоом</h2>
+                <p class="text-xs sm:text-sm text-slate-500">
+                  Багшийн нэмсэн олон сонголттой тестүүд болон үгсийн сангийн хурдан Үг↔Утга тоглоом.
+                </p>
+              </div>
+
+              <div class="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  id="mode-btn-quiz"
+                  class="px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-indigo-600 text-white shadow-sm transition cursor-pointer"
+                >
+                  📝 Quiz Тестүүд
+                </button>
+                <button
+                  type="button"
+                  id="mode-btn-wordmatch"
+                  class="px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-slate-100 text-slate-700 hover:bg-slate-200 transition cursor-pointer"
+                >
+                  🔀 Үг / Утгын Сорил (+15 оноо)
+                </button>
+                <button
+                  type="button"
+                  id="mode-btn-blitz"
+                  class="px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-slate-100 text-slate-700 hover:bg-slate-200 transition cursor-pointer"
+                >
+                  ⚡ 60с Хурдны Сорил
+                </button>
+                <button
+                  type="button"
+                  id="mode-btn-scramble"
+                  class="px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-slate-100 text-slate-700 hover:bg-slate-200 transition cursor-pointer"
+                >
+                  🔤 Үсэг Эвлүүлэх (+20 оноо)
+                </button>
+              </div>
+            </div>
+
+            <!-- Quiz Тестийн хэсэг -->
+            <div id="quiz-arena" class="mt-6 space-y-6">
+              <div class="flex flex-wrap items-center justify-between gap-2 bg-slate-50 px-4 py-3 rounded-2xl border border-slate-200">
+                <div class="text-sm font-bold text-slate-700">
+                  Асуулт: <span id="quiz-progress-label" class="text-indigo-700">1 / 1</span>
+                </div>
+                <div class="flex items-center gap-4 text-xs sm:text-sm font-bold">
+                  <span class="text-amber-700">🔥 Цуврал: <span id="quiz-live-streak">0</span></span>
+                  <span class="text-emerald-700">🎯 Нарийвчлал: <span id="quiz-live-accuracy">0%</span></span>
+                </div>
+              </div>
+
+              <div id="quiz-card-box" class="space-y-4">
+                <!-- JS-ээр идэвхтэй quiz асуулт зурна -->
+              </div>
+
+              <div class="flex items-center justify-between gap-3 pt-2">
+                <button
+                  type="button"
+                  id="quiz-prev-btn"
+                  class="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 text-sm font-bold transition cursor-pointer"
+                >
+                  ← Өмнөх
+                </button>
+                <button
+                  type="button"
+                  id="quiz-next-btn"
+                  class="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold transition cursor-pointer"
+                >
+                  Дараагийн асуулт →
+                </button>
+              </div>
+            </div>
+
+            <!-- Үг / Утгын Тоглоомын хэсэг -->
+            <div id="wordmatch-arena" class="hidden mt-6 space-y-5">
+              <div class="flex flex-wrap items-center justify-between gap-2 bg-violet-50/70 px-4 py-3 rounded-2xl border border-violet-200">
+                <div class="text-sm font-extrabold text-violet-950">
+                  Үг / Утгын Хурдан Сорил • Зөв бол <span class="text-emerald-700">+15 оноо</span>
+                </div>
+                <div class="flex items-center gap-4 text-xs sm:text-sm font-bold">
+                  <span class="text-amber-700">🔥 Цуврал: <span id="wm-live-streak">0</span></span>
+                  <span class="text-emerald-700">🎯 Нарийвчлал: <span id="wm-live-accuracy">0%</span></span>
+                </div>
+              </div>
+
+              <div id="wm-question-box" class="bg-slate-50 rounded-2xl border border-slate-200 p-5 sm:p-6 space-y-4">
+                <!-- JS-ээр үүснэ -->
+              </div>
+
+              <div class="flex justify-end">
+                <button
+                  type="button"
+                  id="wm-next-round-btn"
+                  class="px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-sm font-extrabold shadow-sm transition cursor-pointer"
+                >
+                  Шинэ үг татах →
+                </button>
+              </div>
+            </div>
+
+            <!-- 60 Секундын Хурдны Сорил (Speed Blitz) -->
+            <div id="blitz-arena" class="hidden mt-6 space-y-5">
+              <div class="flex flex-wrap items-center justify-between gap-3 bg-gradient-to-r from-amber-50 to-orange-50 px-4 py-3.5 rounded-2xl border border-amber-200">
+                <div class="flex items-center gap-3">
+                  <span class="text-xl">⚡</span>
+                  <div>
+                    <div class="text-sm font-extrabold text-amber-950">60 Секундын Хурдны Сорил</div>
+                    <div class="text-xs text-amber-800">Дараалан зөв хариулбал комбо бонус (+10 ~ +25 оноо)!</div>
+                  </div>
+                </div>
+                <div class="flex items-center gap-3">
+                  <div class="px-3.5 py-1.5 rounded-xl bg-white border border-amber-200 text-xs sm:text-sm font-extrabold text-orange-700">
+                    🔥 Комбо: x<span id="blitz-combo">1</span>
+                  </div>
+                  <div class="px-3.5 py-1.5 rounded-xl bg-white border border-amber-200 text-xs sm:text-sm font-extrabold text-emerald-700">
+                    ⭐ Оноо: <span id="blitz-round-score">0</span>
+                  </div>
+                  <div id="blitz-timer-box" class="px-4 py-1.5 rounded-xl bg-slate-900 text-white text-xs sm:text-sm font-extrabold">
+                    ⏱️ <span id="blitz-timer">60</span>с
+                  </div>
+                </div>
+              </div>
+
+              <div id="blitz-board" class="bg-slate-50 rounded-2xl border border-slate-200 p-6 text-center space-y-4">
+                <div class="text-4xl">🚀</div>
+                <h3 class="text-lg font-extrabold text-slate-900">Хурд ба Ой Тогтоолтоо Сориход Бэлэн үү?</h3>
+                <p class="text-xs sm:text-sm text-slate-600 max-w-md mx-auto">
+                  60 секундийн дотор аль болох олон англи үгийн утгыг зөв тааж нэмэлт оноо цуглуулаарай.
+                </p>
+                <button
+                  type="button"
+                  id="blitz-start-btn"
+                  class="px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-[0.99] text-white font-extrabold text-sm shadow-md transition cursor-pointer"
+                >
+                  Тоглоом эхлүүлэх ▶
+                </button>
+              </div>
+            </div>
+
+            <!-- Үсэг Эвлүүлэх Тоглоом (Word Scramble) -->
+            <div id="scramble-arena" class="hidden mt-6 space-y-5">
+              <div class="flex flex-wrap items-center justify-between gap-2 bg-sky-50/80 px-4 py-3 rounded-2xl border border-sky-200">
+                <div class="text-sm font-extrabold text-sky-950">
+                  Үсэг Эвлүүлэх • Зөв бүтээвэл <span class="text-emerald-700">+20 оноо</span>
+                </div>
+                <div class="text-xs font-bold text-sky-800">
+                  Холилдсон үсгүүдийг дарж зөв англи үгийг бүтээнэ үү
+                </div>
+              </div>
+
+              <div id="scramble-box" class="bg-slate-50 rounded-2xl border border-slate-200 p-5 sm:p-6 space-y-5">
+                <!-- JS-ээр үүснэ -->
+              </div>
+
+              <div class="flex justify-end">
+                <button
+                  type="button"
+                  id="scramble-next-btn"
+                  class="px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-sm font-extrabold shadow-sm transition cursor-pointer"
+                >
+                  Дараагийн үг →
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Тэргүүлэгчид (Leaderboard) -->
+        <div id="stu-panel-leaderboard" class="hidden bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="p-5 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 class="text-xl font-extrabold text-slate-900">Тэргүүлэгчид</h2>
+              <p class="text-sm text-slate-500">12-р ангийн сурагчдын нэр, бүлэг, сонгосон багш болон онооны эрэмбэ</p>
+            </div>
+            <select
+              id="leaderboard-class-filter"
+              class="px-3.5 py-2 rounded-xl border border-slate-300 bg-slate-50 text-sm font-semibold text-slate-700"
+            >
+              <option value="ALL">Бүх 12-р анги (12а–12ж)</option>
+            </select>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider border-b border-slate-200">
+                  <th class="py-3.5 px-4 font-bold">Байр</th>
+                  <th class="py-3.5 px-4 font-bold">Сурагчийн нэр</th>
+                  <th class="py-3.5 px-4 font-bold">Бүлэг</th>
+                  <th class="py-3.5 px-4 font-bold">Сонгосон багш</th>
+                  <th class="py-3.5 px-4 font-bold text-right">Оноо</th>
+                </tr>
+              </thead>
+              <tbody id="leaderboard-tbody" class="divide-y divide-slate-100 text-sm">
+                <!-- JS-ээр мөрүүд үүснэ -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- БАГШИЙН ТАБ ("Багш")                                               -->
+      <!-- =================================================================== -->
+      <section id="teacher-section" class="hidden space-y-8 animate-pop">
+        <!-- Баннер -->
+        <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-violet-950 text-white rounded-3xl p-6 sm:p-8 shadow-md">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-xs font-bold mb-2">
+            <span>👩‍🏫</span>
+            <span>БАГШИЙН УДИРДЛАГЫН ПАНЕЛЬ</span>
+          </div>
+          <h1 class="text-2xl sm:text-3xl font-extrabold">Үгсийн Сан, Quiz &amp; Багш/Сурагчийн Удирдлага</h1>
+          <p class="text-indigo-200 text-sm mt-1.5 max-w-4xl">
+            Шинэ үг болон quiz нэмэх, багш болон сурагч нэмэх/устгах, мөн сурагчдын оноо болон ахиц дэвшлийг анги эсвэл багшаар шүүж харах боломжтой.
+          </p>
+        </div>
+
+        <!-- 1-р мөр: Шинэ үг нэмэх + Шинэ Quiz / Тоглоом нэмэх -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+          <!-- Шинэ үг нэмэх форм -->
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-7 space-y-5">
+            <div class="flex items-center gap-3">
+              <span class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-xl font-extrabold">
+                +
+              </span>
+              <div>
+                <h2 class="text-lg font-extrabold text-slate-900">Шинэ Англи Үг Нэмэх</h2>
+                <p class="text-xs text-slate-500">Сурагчдын үгсийн карт болон тоглоомд автоматаар нэмэгдэнэ</p>
+              </div>
+            </div>
+
+            <form id="teacher-add-word-form" class="space-y-4">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                  <label for="t-word-en" class="block text-xs font-bold text-slate-700 mb-1">
+                    Англи үг <span class="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="t-word-en"
+                    required
+                    placeholder="Жишээ нь: Resilience"
+                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label for="t-word-ipa" class="block text-xs font-bold text-slate-700 mb-1">
+                    Гадаад дуудлага / IPA <span class="text-slate-400 font-normal">(заавал биш)</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="t-word-ipa"
+                    placeholder="Жишээ нь: /rɪˈzɪl.i.əns/"
+                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                  <label for="t-word-mn" class="block text-xs font-bold text-slate-700 mb-1">
+                    Монгол орчуулга <span class="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="t-word-mn"
+                    required
+                    placeholder="Жишээ нь: Хүндрэлийг даван туулах чадвар"
+                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label for="t-word-category" class="block text-xs font-bold text-slate-700 mb-1">
+                    Ангилал / Түвшин
+                  </label>
+                  <select
+                    id="t-word-category"
+                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="Academic">Academic</option>
+                    <option value="Daily Life">Daily Life</option>
+                    <option value="Exam Prep">Exam Prep</option>
+                    <option value="Grammar & Idioms">Grammar &amp; Idioms</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label for="t-word-example" class="block text-xs font-bold text-slate-700 mb-1">
+                  Жишээ өгүүлбэр
+                </label>
+                <textarea
+                  id="t-word-example"
+                  rows="2"
+                  placeholder="Жишээ нь: Resilience helps students stay motivated during final exams."
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                ></textarea>
+              </div>
+
+              <button
+                type="submit"
+                class="w-full py-3 px-5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white font-extrabold text-sm shadow-sm transition cursor-pointer"
+              >
+                Үгсийн санд нэмэх
+              </button>
+            </form>
+
+            <!-- Үгсийн сангийн шууд жагсаалт + Устгах -->
+            <div class="pt-3 border-t border-slate-100">
+              <div class="flex items-center justify-between mb-2.5">
+                <h3 class="text-sm font-extrabold text-slate-800">
+                  Бүртгэлтэй үгсийн жагсаалт (<span id="t-words-count">0</span>)
+                </h3>
+              </div>
+              <div id="t-words-live-list" class="space-y-2 max-h-64 overflow-y-auto pr-1">
+                <!-- JS-ээр үүснэ -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Шинэ Quiz / Тоглоом нэмэх форм -->
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-7 space-y-5">
+            <div class="flex items-center gap-3">
+              <span class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl font-extrabold">
+                🎮
+              </span>
+              <div>
+                <h2 class="text-lg font-extrabold text-slate-900">Шинэ Quiz / Тоглоом Нэмэх</h2>
+                <p class="text-xs text-slate-500">4 сонголттой тест зохиож зөв хариултын оноог тохируулна</p>
+              </div>
+            </div>
+
+            <form id="teacher-add-quiz-form" class="space-y-4">
+              <div>
+                <label for="t-quiz-question" class="block text-xs font-bold text-slate-700 mb-1">
+                  Тестийн асуулт <span class="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="t-quiz-question"
+                  required
+                  placeholder="Жишээ нь: Which word means 'to improve or make better'?"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label for="t-opt-0" class="block text-xs font-semibold text-slate-600 mb-1">Сонголт 1 *</label>
+                  <input type="text" id="t-opt-0" required placeholder="Enhance" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
+                </div>
+                <div>
+                  <label for="t-opt-1" class="block text-xs font-semibold text-slate-600 mb-1">Сонголт 2 *</label>
+                  <input type="text" id="t-opt-1" required placeholder="Delay" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
+                </div>
+                <div>
+                  <label for="t-opt-2" class="block text-xs font-semibold text-slate-600 mb-1">Сонголт 3 *</label>
+                  <input type="text" id="t-opt-2" required placeholder="Ignore" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
+                </div>
+                <div>
+                  <label for="t-opt-3" class="block text-xs font-semibold text-slate-600 mb-1">Сонголт 4 *</label>
+                  <input type="text" id="t-opt-3" required placeholder="Refuse" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                  <label for="t-quiz-correct" class="block text-xs font-bold text-slate-700 mb-1">
+                    Зөв хариултын дугаар
+                  </label>
+                  <select
+                    id="t-quiz-correct"
+                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-sm font-semibold"
+                  >
+                    <option value="0">Сонголт 1</option>
+                    <option value="1">Сонголт 2</option>
+                    <option value="2">Сонголт 3</option>
+                    <option value="3">Сонголт 4</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label for="t-quiz-points" class="block text-xs font-bold text-slate-700 mb-1">
+                    Олгох оноо
+                  </label>
+                  <input
+                    type="number"
+                    id="t-quiz-points"
+                    min="5"
+                    max="200"
+                    step="5"
+                    value="20"
+                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                class="w-full py-3 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-extrabold text-sm shadow-sm transition cursor-pointer"
+              >
+                Quiz / Тоглоом нэмэх
+              </button>
+            </form>
+
+            <!-- Quiz-үүдийн шууд жагсаалт + Устгах -->
+            <div class="pt-3 border-t border-slate-100">
+              <div class="flex items-center justify-between mb-2.5">
+                <h3 class="text-sm font-extrabold text-slate-800">
+                  Бүртгэлтэй Quiz / Тоглоомууд (<span id="t-quizzes-count">0</span>)
+                </h3>
+              </div>
+              <div id="t-quizzes-live-list" class="space-y-2 max-h-64 overflow-y-auto pr-1">
+                <!-- JS-ээр үүснэ -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2-р мөр: Багш нарын удирдлага + Сурагчдын удирдлага (нэмэх/устгах) -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+          <!-- Багш нарыг нэмэх / устгах -->
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+            <div class="flex items-center gap-2.5">
+              <span class="w-10 h-10 rounded-xl bg-violet-100 text-violet-700 flex items-center justify-center text-lg font-bold">
+                👩‍🏫
+              </span>
+              <div>
+                <h2 class="text-base sm:text-lg font-extrabold text-slate-900">
+                  Багш Нарын Удирдлага (<span id="t-teachers-count">0</span>)
+                </h2>
+                <p class="text-xs text-slate-500">Шинэ багш нэмэх эсвэл жагсаалтаас устгах</p>
+              </div>
+            </div>
+
+            <form id="teacher-manage-form" class="space-y-3">
+              <input
+                type="text"
+                id="m-teacher-name"
+                required
+                placeholder="Шинэ багшийн нэр (жнь: Б. Сарнай багш)"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+              />
+              <input
+                type="text"
+                id="m-teacher-subject"
+                placeholder="Чиглэл / тайлбар (жнь: Speaking & Listening)"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+              />
+              <button
+                type="submit"
+                class="w-full py-2.5 px-4 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-extrabold text-sm transition cursor-pointer"
+              >
+                + Багш нэмэх
+              </button>
+            </form>
+
+            <div id="t-teachers-list" class="space-y-2 max-h-64 overflow-y-auto pt-2 border-t border-slate-100">
+              <!-- JS-ээр багш нар үүснэ -->
+            </div>
+          </div>
+
+          <!-- Сурагчдыг нэмэх / устгах -->
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+            <div class="flex items-center gap-2.5">
+              <span class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center text-lg font-bold">
+                🎒
+              </span>
+              <div>
+                <h2 class="text-base sm:text-lg font-extrabold text-slate-900">
+                  Сурагчдын Удирдлага (<span id="t-students-manage-count">0</span>)
+                </h2>
+                <p class="text-xs text-slate-500">Шинэ сурагч нэмэх эсвэл бүртгэлээс устгах</p>
+              </div>
+            </div>
+
+            <form id="teacher-add-student-form" class="space-y-3">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <input
+                  type="text"
+                  id="m-student-name"
+                  required
+                  placeholder="Сурагчийн нэр (жнь: Анужин)"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                <select
+                  id="m-student-class"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-sm font-semibold text-slate-800"
+                >
+                  <!-- JS-ээр 12а..12ж орно -->
+                </select>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <select
+                  id="m-student-teacher"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-sm font-semibold text-slate-800"
+                >
+                  <!-- JS-ээр багш нар орно -->
+                </select>
+                <input
+                  type="number"
+                  id="m-student-score"
+                  min="0"
+                  max="10000"
+                  step="5"
+                  value="0"
+                  placeholder="Анхны оноо"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold"
+                />
+              </div>
+
+              <button
+                type="submit"
+                class="w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-sm transition cursor-pointer"
+              >
+                + Сурагч нэмэх
+              </button>
+            </form>
+
+            <div id="t-students-manage-list" class="space-y-2 max-h-64 overflow-y-auto pt-2 border-t border-slate-100">
+              <!-- JS-ээр сурагчид + устгах товч үүснэ -->
+            </div>
+          </div>
+        </div>
+
+        <!-- 3-р мөр: Сурагчдын оноо ба ахиц дэвшлийн тойм хүснэгт -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="p-5 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 class="text-lg font-extrabold text-slate-900">Сурагчдын Оноо &amp; Ахиц Дэвшил</h2>
+              <p class="text-xs sm:text-sm text-slate-500">12-р ангийн бүлэг эсвэл сонгосон багшаар шүүж харна уу</p>
+            </div>
+
+            <div class="flex flex-wrap gap-2">
+              <select
+                id="overview-class-filter"
+                class="px-3 py-2 rounded-xl border border-slate-300 bg-slate-50 text-xs sm:text-sm font-semibold text-slate-700"
+              >
+                <option value="ALL">Бүх бүлэг</option>
+              </select>
+              <select
+                id="overview-teacher-filter"
+                class="px-3 py-2 rounded-xl border border-slate-300 bg-slate-50 text-xs sm:text-sm font-semibold text-slate-700"
+              >
+                <option value="ALL">Бүх багш</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider border-b border-slate-200">
+                  <th class="py-3 px-4 font-bold">Сурагч</th>
+                  <th class="py-3 px-4 font-bold">Бүлэг</th>
+                  <th class="py-3 px-4 font-bold">Багш</th>
+                  <th class="py-3 px-4 font-bold">Түвшин</th>
+                  <th class="py-3 px-4 font-bold">Нарийвчлал</th>
+                  <th class="py-3 px-4 font-bold text-right">Оноо</th>
+                </tr>
+              </thead>
+              <tbody id="teacher-students-tbody" class="divide-y divide-slate-100 text-sm">
+                <!-- JS-ээр мөрүүд үүснэ -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    /**
+     * 12-р ангийн Англи Хэлний Интерактив Сургалтын Платформ
+     * Бүх мэдээлэл localStorage дээр хадгалагдана.
+     */
+    (function () {
+      'use strict';
+
+      const STORAGE_KEYS = {
+        CURRENT_USER: 'eng12_plat_current_user_v3',
+        STUDENTS: 'eng12_plat_students_v3',
+        TEACHERS: 'eng12_plat_teachers_v3',
+        WORDS: 'eng12_plat_words_v2',
+        QUIZZES: 'eng12_plat_quizzes_v2'
+      };
+
+      // 12-р ангийн 8 бүлэг
+      const CLASSES_12 = ['12а', '12б', '12в', '12г', '12д', '12е', '12ё', '12ж'];
+
+      // Сурагч сонгоход зөвхөн Erkegul багш байна
+      const DEFAULT_TEACHERS = [
+        { id: 't-erkegul', name: 'Erkegul', subject: '12-р ангийн Англи хэл' }
+      ];
+
+      // Анхны үгсийн сан
+      const DEFAULT_WORDS = [
+        {
+          id: 'w-1',
+          en: 'Perseverance',
+          ipa: '/ˌpɜː.sɪˈvɪə.rəns/',
+          mn: 'Тууштай байдал, шантрашгүй зан',
+          category: 'Academic',
+          example: 'Perseverance is essential when preparing for university entrance exams.'
+        },
+        {
+          id: 'w-2',
+          en: 'Sustainable',
+          ipa: '/səˈsteɪ.nə.bəl/',
+          mn: 'Тогтвортой, урт хугацаанд хадгалагдах',
+          category: 'Academic',
+          example: 'Cities need sustainable energy solutions to reduce air pollution.'
+        },
+        {
+          id: 'w-3',
+          en: 'Collaborate',
+          ipa: '/kəˈlæb.ə.reɪt/',
+          mn: 'Хамтран ажиллах',
+          category: 'Daily Life',
+          example: 'Students collaborate on group projects to share creative ideas.'
+        },
+        {
+          id: 'w-4',
+          en: 'Emphasize',
+          ipa: '/ˈem.fə.saɪz/',
+          mn: 'Онцлон тэмдэглэх, тодруулах',
+          category: 'Exam Prep',
+          example: 'Our teacher emphasizes clear pronunciation and active listening.'
+        },
+        {
+          id: 'w-5',
+          en: 'Break the ice',
+          ipa: '/breɪk ðiː aɪs/',
+          mn: 'Яриа эхлүүлэх, уур амьсгал зөөлрүүлэх',
+          category: 'Grammar & Idioms',
+          example: 'Asking about hobbies is a great way to break the ice in English.'
+        },
+        {
+          id: 'w-6',
+          en: 'Adaptable',
+          ipa: '/əˈdæp.tə.bəl/',
+          mn: 'Өөрчлөлтөд дасан зохицох чадвартай',
+          category: 'Daily Life',
+          example: 'Being adaptable helps you succeed in new learning environments.'
+        }
+      ];
+
+      // Анхны Quiz асуултууд
+      const DEFAULT_QUIZZES = [
+        {
+          id: 'q-1',
+          question: 'What does "perseverance" mean in Mongolian?',
+          options: [
+            'Тууштай байдал, шантрашгүй зан',
+            'Гэнэтийн явдал',
+            'Түр зуурын амралт',
+            'Хялбар даалгавар'
+          ],
+          correctIndex: 0,
+          points: 20
+        },
+        {
+          id: 'q-2',
+          question: 'Choose the best word to complete: "Renewable energy is more ______ than coal."',
+          options: ['sustainable', 'fragile', 'reluctant', 'awkward'],
+          correctIndex: 0,
+          points: 20
+        },
+        {
+          id: 'q-3',
+          question: 'What does the English idiom "break the ice" mean?',
+          options: [
+            'Яриа эхлүүлэх, хөндий байдлыг арилгах',
+            'Ус хөлдөөх',
+            'Шалгалт хойшлуулах',
+            'Ном унших'
+          ],
+          correctIndex: 0,
+          points: 25
+        },
+        {
+          id: 'q-4',
+          question: 'If you "collaborate" with classmates, what are you doing?',
+          options: [
+            'Хамтран ажиллах',
+            'Ганцаараа зугтах',
+            'Маргалдах',
+            'Унтах'
+          ],
+          correctIndex: 0,
+          points: 15
+        }
+      ];
+
+      // Аюулгүй localStorage унших / бичих
+      function loadStorage(key, fallback) {
+        try {
+          const raw = localStorage.getItem(key);
+          if (!raw) return fallback;
+          const parsed = JSON.parse(raw);
+          return parsed !== null && parsed !== undefined ? parsed : fallback;
+        } catch (err) {
+          console.error('localStorage унших алдаа:', err);
+          return fallback;
+        }
+      }
+
+      function saveStorage(key, value) {
+        try {
+          localStorage.setItem(key, JSON.stringify(value));
+        } catch (err) {
+          console.error('localStorage хадгалах алдаа:', err);
+        }
+      }
+
+      // Төлөвийн өгөгдөл
+      let teachers = loadStorage(STORAGE_KEYS.TEACHERS, null);
+      if (!Array.isArray(teachers) || teachers.length === 0) {
+        teachers = DEFAULT_TEACHERS.slice();
+        saveStorage(STORAGE_KEYS.TEACHERS, teachers);
+      } else {
+        // Өмнөх жишээ багш нар хадгалагдсан байвал зөвхөн Erkegul болгож шинэчилнэ
+        const oldPresetIds = new Set(['t-1', 't-2', 't-3']);
+        if (teachers.every((t) => oldPresetIds.has(t.id))) {
+          teachers = DEFAULT_TEACHERS.slice();
+          saveStorage(STORAGE_KEYS.TEACHERS, teachers);
+        }
+      }
+
+      let words = loadStorage(STORAGE_KEYS.WORDS, null);
+      if (!Array.isArray(words) || words.length === 0) {
+        words = DEFAULT_WORDS.slice();
+        saveStorage(STORAGE_KEYS.WORDS, words);
+      }
+
+      let quizzes = loadStorage(STORAGE_KEYS.QUIZZES, null);
+      if (!Array.isArray(quizzes) || quizzes.length === 0) {
+        quizzes = DEFAULT_QUIZZES.slice();
+        saveStorage(STORAGE_KEYS.QUIZZES, quizzes);
+      }
+
+      let students = loadStorage(STORAGE_KEYS.STUDENTS, []);
+      if (!Array.isArray(students)) {
+        students = [];
+      }
+
+      let currentUser = loadStorage(STORAGE_KEYS.CURRENT_USER, null);
+
+      // Бүртгэлийн дэлгэцийн төлөв
+      let regRoleChoice = 'student'; // 'student' | 'teacher'
+      let regSelectedClass = '';
+
+      // Сурагчийн тоглоомын төлөв
+      let quizIndex = 0;
+      let quizAnsweredMap = {};
+      let wmCurrentQuestion = null;
+      let wmAnswered = false;
+
+      // 60с Хурдны Сорилын төлөв
+      let blitzInterval = null;
+      let blitzTimeLeft = 60;
+      let blitzRunning = false;
+      let blitzRoundScore = 0;
+      let blitzCombo = 1;
+      let blitzCorrectTotal = 0;
+
+      // Үсэг эвлүүлэх тоглоомын төлөв
+      let scrambleTargetWord = null;
+      let scrambleTiles = [];
+      let scramblePickedIndices = [];
+      let scrambleSolved = false;
+
+      // HTML Escape
+      function esc(str) {
+        return String(str ?? '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      // Мэдэгдэл харуулах (Toast)
+      function showToast(message, type = 'info') {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+
+        const palette = {
+          success: 'bg-emerald-600 text-white border-emerald-700',
+          error: 'bg-rose-600 text-white border-rose-700',
+          info: 'bg-slate-900 text-white border-slate-800'
+        };
+
+        const el = document.createElement('div');
+        el.className = `pointer-events-auto px-4 py-3 rounded-2xl border shadow-xl text-sm font-semibold animate-pop ${palette[type] || palette.info}`;
+        el.textContent = message;
+        container.appendChild(el);
+
+        setTimeout(() => {
+          el.style.opacity = '0';
+          el.style.transform = 'translateY(-6px)';
+          el.style.transition = 'all 0.2s ease';
+          setTimeout(() => el.remove(), 220);
+        }, 2800);
+      }
+
+      // Онооноос түвшин бодох (100 оноо тутамд 1 түвшин)
+      function computeLevelInfo(score) {
+        const safeScore = Math.max(0, Number(score) || 0);
+        const level = Math.floor(safeScore / 100) + 1;
+        const intoLevel = safeScore % 100;
+        const remaining = 100 - intoLevel;
+        return {
+          level,
+          progressPercent: intoLevel,
+          remainingForNext: remaining
+        };
+      }
+
+      // Сурагчийн профайл олох эсвэл шинээр үүсгэх
+      function ensureStudentProfile(name, className, teacherName, initialScore = 0) {
+        const cleanName = name.trim();
+        const fallbackTeacher =
+          teachers.length > 0 ? teachers[0].name : 'Бүртгэлтэй багшгүй';
+        let stu = students.find(
+          (s) => s.name.toLowerCase() === cleanName.toLowerCase() && s.className === className
+        );
+
+        if (!stu) {
+          stu = {
+            id: 'stu-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+            name: cleanName,
+            className: className || '12а',
+            teacherName: teacherName || fallbackTeacher,
+            score: Math.max(0, Number(initialScore) || 0),
+            streak: 0,
+            bestStreak: 0,
+            correctCount: 0,
+            answeredCount: 0,
+            studiedWordIds: []
+          };
+          students.push(stu);
+        } else if (teacherName) {
+          stu.teacherName = teacherName;
+        }
+
+        saveStorage(STORAGE_KEYS.STUDENTS, students);
+        return stu;
+      }
+
+      function getActiveStudentRecord() {
+        if (!currentUser || currentUser.role !== 'student') return null;
+        return (
+          students.find((s) => s.id === currentUser.studentId) ||
+          ensureStudentProfile(currentUser.name, currentUser.className, currentUser.teacherName)
+        );
+      }
+
+      // Хариултын оноо, цуврал, нарийвчлал шинэчлэх
+      function recordAnswerResult(isCorrect, pointsEarned) {
+        const stu = getActiveStudentRecord();
+        if (!stu) return;
+
+        stu.answeredCount = (stu.answeredCount || 0) + 1;
+        if (isCorrect) {
+          stu.correctCount = (stu.correctCount || 0) + 1;
+          stu.streak = (stu.streak || 0) + 1;
+          stu.bestStreak = Math.max(stu.bestStreak || 0, stu.streak);
+          stu.score = (stu.score || 0) + (Number(pointsEarned) || 10);
+        } else {
+          stu.streak = 0;
+        }
+
+        saveStorage(STORAGE_KEYS.STUDENTS, students);
+        refreshHeaderAndStats();
+      }
+
+      // =====================================================================
+      // БҮРТГҮҮЛЭХ ДЭЛГЭЦИЙН ЛОГИК
+      // =====================================================================
+      const roleChoiceStudentBtn = document.getElementById('role-choice-student');
+      const roleChoiceTeacherBtn = document.getElementById('role-choice-teacher');
+      const studentRegFields = document.getElementById('student-reg-fields');
+      const teacherRegFields = document.getElementById('teacher-reg-fields');
+      const registerSubmitLabel = document.getElementById('register-submit-label');
+      const registerSubmitBtn = document.getElementById('register-submit-btn');
+
+      function updateRegistrationRoleUI() {
+        const isStudent = regRoleChoice === 'student';
+
+        roleChoiceStudentBtn.className = isStudent
+          ? 'role-choice-btn p-4 rounded-2xl border-2 text-left transition cursor-pointer flex items-start gap-3.5 border-indigo-600 bg-indigo-50/70 ring-2 ring-indigo-500/20'
+          : 'role-choice-btn p-4 rounded-2xl border-2 text-left transition cursor-pointer flex items-start gap-3.5 border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50';
+
+        roleChoiceTeacherBtn.className = !isStudent
+          ? 'role-choice-btn p-4 rounded-2xl border-2 text-left transition cursor-pointer flex items-start gap-3.5 border-violet-600 bg-violet-50/70 ring-2 ring-violet-500/20'
+          : 'role-choice-btn p-4 rounded-2xl border-2 text-left transition cursor-pointer flex items-start gap-3.5 border-slate-200 bg-white hover:border-violet-300 hover:bg-slate-50';
+
+        studentRegFields.classList.toggle('hidden', !isStudent);
+        teacherRegFields.classList.toggle('hidden', isStudent);
+
+        registerSubmitLabel.textContent = isStudent
+          ? 'Сурагчаар бүртгүүлж орох'
+          : 'Багшаар бүртгүүлж орох';
+
+        registerSubmitBtn.className = isStudent
+          ? 'w-full py-3.5 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white font-extrabold text-base shadow-lg shadow-indigo-600/25 transition flex items-center justify-center gap-2 cursor-pointer'
+          : 'w-full py-3.5 px-6 rounded-xl bg-violet-600 hover:bg-violet-700 active:scale-[0.99] text-white font-extrabold text-base shadow-lg shadow-violet-600/25 transition flex items-center justify-center gap-2 cursor-pointer';
+      }
+
+      roleChoiceStudentBtn.addEventListener('click', () => {
+        regRoleChoice = 'student';
+        updateRegistrationRoleUI();
+      });
+
+      roleChoiceTeacherBtn.addEventListener('click', () => {
+        regRoleChoice = 'teacher';
+        updateRegistrationRoleUI();
+      });
+
+      // 12-р ангийн 8 бүлгийн товчнуудыг зурах
+      function renderRegistrationClasses() {
+        const grid = document.getElementById('class-grid');
+        grid.innerHTML = '';
+        CLASSES_12.forEach((cls) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          const selected = regSelectedClass === cls;
+          btn.className = `py-2.5 px-3 rounded-xl font-extrabold text-sm border transition cursor-pointer ${
+            selected
+              ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm scale-[1.02]'
+              : 'bg-white text-slate-700 border-slate-200 hover:bg-indigo-50 hover:border-indigo-300'
+          }`;
+          btn.textContent = cls;
+          btn.addEventListener('click', () => {
+            regSelectedClass = cls;
+            document.getElementById('class-error').classList.add('hidden');
+            renderRegistrationClasses();
+          });
+          grid.appendChild(btn);
+        });
+      }
+
+      // Бүртгэлийн дэлгэц дэх багш сонгох dropdown-ийг шинэчлэх
+      function populateRegistrationTeachers() {
+        const select = document.getElementById('student-teacher-select');
+        if (!Array.isArray(teachers) || teachers.length === 0) {
+          teachers = DEFAULT_TEACHERS.slice();
+          saveStorage(STORAGE_KEYS.TEACHERS, teachers);
+        }
+
+        const currentVal = select.value;
+        select.innerHTML = '';
+
+        teachers.forEach((t) => {
+          const opt = document.createElement('option');
+          opt.value = t.name;
+          opt.textContent = t.subject ? `${t.name} (${t.subject})` : t.name;
+          select.appendChild(opt);
+        });
+
+        if (currentVal && teachers.some((t) => t.name === currentVal)) {
+          select.value = currentVal;
+        }
+      }
+
+      // Бүртгэлийн форм илгээх
+      document.getElementById('register-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        if (regRoleChoice === 'student') {
+          const nameInput = document.getElementById('student-name');
+          const teacherSelect = document.getElementById('student-teacher-select');
+          const nameVal = nameInput.value.trim();
+          const chosenTeacher =
+            teacherSelect.value.trim() || (teachers[0] ? teachers[0].name : DEFAULT_TEACHERS[0].name);
+
+          let valid = true;
+          if (nameVal.length < 2) {
+            document.getElementById('student-name-error').classList.remove('hidden');
+            valid = false;
+          } else {
+            document.getElementById('student-name-error').classList.add('hidden');
+          }
+
+          if (!regSelectedClass) {
+            document.getElementById('class-error').classList.remove('hidden');
+            valid = false;
+          } else {
+            document.getElementById('class-error').classList.add('hidden');
+          }
+
+          if (!chosenTeacher) {
+            document.getElementById('teacher-select-error').classList.remove('hidden');
+            valid = false;
+          } else {
+            document.getElementById('teacher-select-error').classList.add('hidden');
+          }
+
+          if (!valid) return;
+
+          const stu = ensureStudentProfile(nameVal, regSelectedClass, chosenTeacher);
+          currentUser = {
+            role: 'student',
+            studentId: stu.id,
+            name: stu.name,
+            className: stu.className,
+            teacherName: stu.teacherName,
+            activeTab: 'student'
+          };
+          saveStorage(STORAGE_KEYS.CURRENT_USER, currentUser);
+          showToast(`Сурагчаар нэвтэрлээ: ${stu.name} (${stu.className})`, 'success');
+          enterMainApp('student');
+        } else {
+          const tNameInput = document.getElementById('teacher-reg-name');
+          const tSubInput = document.getElementById('teacher-reg-subject');
+          const tName = tNameInput.value.trim();
+          const tSub = tSubInput.value.trim();
+
+          if (tName.length < 2) {
+            document.getElementById('teacher-name-error').classList.remove('hidden');
+            return;
+          }
+          document.getElementById('teacher-name-error').classList.add('hidden');
+
+          let existing = teachers.find((t) => t.name.toLowerCase() === tName.toLowerCase());
+          if (!existing) {
+            existing = {
+              id: 't-' + Date.now() + '-' + Math.random().toString(36).slice(2, 5),
+              name: tName,
+              subject: tSub || '12-р ангийн Англи хэл'
+            };
+            teachers.unshift(existing);
+            saveStorage(STORAGE_KEYS.TEACHERS, teachers);
+          } else if (tSub) {
+            existing.subject = tSub;
+            saveStorage(STORAGE_KEYS.TEACHERS, teachers);
+          }
+
+          currentUser = {
+            role: 'teacher',
+            teacherId: existing.id,
+            name: existing.name,
+            subject: existing.subject,
+            activeTab: 'teacher'
+          };
+          saveStorage(STORAGE_KEYS.CURRENT_USER, currentUser);
+          showToast(`Багшаар нэвтэрлээ: ${existing.name}`, 'success');
+          enterMainApp('teacher');
+        }
+      });
+
+      // Гарах / Солих товч
+      document.getElementById('logout-btn').addEventListener('click', () => {
+        currentUser = null;
+        regSelectedClass = '';
+        quizAnsweredMap = {};
+        wmCurrentQuestion = null;
+        wmAnswered = false;
+        localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
+
+        document.getElementById('student-name').value = '';
+        document.getElementById('teacher-reg-name').value = '';
+        document.getElementById('teacher-reg-subject').value = '';
+
+        populateRegistrationTeachers();
+        renderRegistrationClasses();
+        updateRegistrationRoleUI();
+
+        document.getElementById('main-app').classList.add('hidden');
+        document.getElementById('auth-screen').classList.remove('hidden');
+        showToast('Бүртгэлээс гарлаа. Шинээр сонгож орно уу.', 'info');
+      });
+
+      // =====================================================================
+      // ҮНДСЭН АПП РУУ ОРОХ БА ТАБ СОЛИХ ("Сурагч" болон "Багш")
+      // =====================================================================
+      function enterMainApp(initialTab) {
+        document.getElementById('auth-screen').classList.add('hidden');
+        document.getElementById('main-app').classList.remove('hidden');
+
+        const isTeacher = currentUser && currentUser.role === 'teacher';
+        const requestedTab = initialTab || (currentUser && currentUser.activeTab) || (isTeacher ? 'teacher' : 'student');
+        const tabToOpen = isTeacher ? requestedTab : 'student';
+        switchMainTab(tabToOpen);
+        refreshAllViews();
+      }
+
+      function switchMainTab(tabName) {
+        const isTeacher = currentUser && currentUser.role === 'teacher';
+        if (!isTeacher && tabName === 'teacher') {
+          tabName = 'student';
+          showToast('Зөвхөн багшаар нэвтэрсэн хэрэглэгч "Багш" хэсэг рүү орно.', 'error');
+        }
+
+        const openTeacher = tabName === 'teacher' && Boolean(isTeacher);
+        const btnStudent = document.getElementById('main-tab-student');
+        const btnTeacher = document.getElementById('main-tab-teacher');
+
+        btnStudent.className = !openTeacher
+          ? 'main-tab-btn flex-1 sm:flex-initial px-5 py-2.5 rounded-xl font-extrabold text-sm transition flex items-center justify-center gap-2 cursor-pointer bg-indigo-600 text-white shadow-sm'
+          : 'main-tab-btn flex-1 sm:flex-initial px-5 py-2.5 rounded-xl font-extrabold text-sm transition flex items-center justify-center gap-2 cursor-pointer bg-slate-100 text-slate-700 hover:bg-slate-200';
+
+        btnTeacher.classList.toggle('hidden', !isTeacher);
+        btnTeacher.disabled = !isTeacher;
+        btnTeacher.setAttribute('aria-hidden', !isTeacher ? 'true' : 'false');
+        btnTeacher.className = `${!isTeacher ? 'hidden ' : ''}main-tab-btn flex-1 sm:flex-initial px-5 py-2.5 rounded-xl font-extrabold text-sm transition flex items-center justify-center gap-2 cursor-pointer ${
+          openTeacher
+            ? 'bg-indigo-600 text-white shadow-sm'
+            : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+        }`;
+
+        document.getElementById('student-section').classList.toggle('hidden', openTeacher);
+        document.getElementById('teacher-section').classList.toggle('hidden', !openTeacher);
+
+        if (currentUser) {
+          currentUser.activeTab = isTeacher ? tabName : 'student';
+          saveStorage(STORAGE_KEYS.CURRENT_USER, currentUser);
+        }
+
+        if (openTeacher) {
+          renderTeacherPanel();
+        } else {
+          renderStudentPanel();
+        }
+      }
+
+      document.getElementById('main-tab-student').addEventListener('click', () => switchMainTab('student'));
+      document.getElementById('main-tab-teacher').addEventListener('click', () => switchMainTab('teacher'));
+
+      // =====================================================================
+      // ДЭЭД HEADER БА СТАТИСТИК ШИНЭЧЛЭХ
+      // =====================================================================
+      function refreshHeaderAndStats() {
+        if (!currentUser) return;
+
+        const isTeacherUser = currentUser.role === 'teacher';
+        const stu = isTeacherUser ? null : getActiveStudentRecord();
+        const displayScore = stu ? stu.score : 0;
+        const lvl = computeLevelInfo(displayScore);
+
+        document.getElementById('header-user-name').textContent = isTeacherUser ? currentUser.name : stu.name;
+        document.getElementById('header-role-badge').textContent = isTeacherUser ? 'Багш' : 'Сурагч';
+        document.getElementById('header-role-badge').className = isTeacherUser
+          ? 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-violet-100 text-violet-800'
+          : 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800';
+
+        const avatar = document.getElementById('header-avatar');
+        avatar.textContent = isTeacherUser ? '👩‍🏫' : '🎒';
+        avatar.className = isTeacherUser
+          ? 'w-11 h-11 rounded-2xl bg-violet-600 text-white flex items-center justify-center text-lg shrink-0 shadow-sm'
+          : 'w-11 h-11 rounded-2xl bg-indigo-600 text-white flex items-center justify-center text-lg shrink-0 shadow-sm';
+
+        document.getElementById('header-extra-info').textContent = isTeacherUser
+          ? `${currentUser.subject || 'Англи хэлний багш'}`
+          : `${stu.className} бүлэг • Багш: ${stu.teacherName}`;
+
+        document.getElementById('header-sub-status').textContent = isTeacherUser
+          ? `Багшийн эрхээр идэвхтэй • ${words.length} үг, ${quizzes.length} тест`
+          : `Түвшин ${lvl.level} • Дараагийн түвшинд ${lvl.remainingForNext} оноо дутуу`;
+
+        document.getElementById('header-score').textContent = displayScore;
+        document.getElementById('header-level-pill').textContent = `Lv.${lvl.level}`;
+
+        // Сурагчийн картын статистик
+        const statScore = stu ? stu.score : 0;
+        const streak = stu ? stu.streak || 0 : 0;
+        const bestStreak = stu ? stu.bestStreak || 0 : 0;
+        const correctCount = stu ? stu.correctCount || 0 : 0;
+        const answeredCount = stu ? stu.answeredCount || 0 : 0;
+        const studiedIds = stu && Array.isArray(stu.studiedWordIds) ? stu.studiedWordIds : [];
+        const accuracy = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0;
+
+        document.getElementById('stu-stat-score').textContent = statScore;
+        document.getElementById('stu-stat-level').textContent = `Level ${lvl.level}`;
+        document.getElementById('stu-level-bar').style.width = `${lvl.progressPercent}%`;
+        document.getElementById('stu-level-hint').textContent = `Дараагийн түвшинд ${lvl.remainingForNext} оноо`;
+
+        document.getElementById('stu-stat-streak').textContent = streak;
+        document.getElementById('stu-stat-best-streak').textContent = bestStreak;
+
+        document.getElementById('stu-stat-accuracy').textContent = `${accuracy}%`;
+        document.getElementById('stu-stat-answered-summary').textContent = `${correctCount} / ${answeredCount} зөв хариулсан`;
+
+        document.getElementById('stu-stat-studied-words').textContent = `${studiedIds.length} / ${words.length}`;
+
+        document.getElementById('quiz-live-streak').textContent = streak;
+        document.getElementById('quiz-live-accuracy').textContent = `${accuracy}%`;
+        document.getElementById('wm-live-streak').textContent = streak;
+        document.getElementById('wm-live-accuracy').textContent = `${accuracy}%`;
+      }
+
+      // =====================================================================
+      // СУРАГЧИЙН ХЭСЭГ: ДЭД ТАБУУД, ФЛАШКАРТ, ДУУДЛАГА, ТОГЛООМ, ЛИДЕРБОАРД
+      // =====================================================================
+      const subVocabBtn = document.getElementById('stu-sub-vocab');
+      const subGameBtn = document.getElementById('stu-sub-game');
+      const subLbBtn = document.getElementById('stu-sub-leaderboard');
+
+      function setStudentSubtab(active) {
+        const activeCls = 'stu-sub-btn px-4 py-2 rounded-xl text-sm font-bold bg-slate-900 text-white transition cursor-pointer flex items-center gap-2';
+        const inactiveCls = 'stu-sub-btn px-4 py-2 rounded-xl text-sm font-bold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition cursor-pointer flex items-center gap-2';
+
+        subVocabBtn.className = active === 'vocab' ? activeCls : inactiveCls;
+        subGameBtn.className = active === 'game' ? activeCls : inactiveCls;
+        subLbBtn.className = active === 'leaderboard' ? activeCls : inactiveCls;
+
+        document.getElementById('stu-panel-vocab').classList.toggle('hidden', active !== 'vocab');
+        document.getElementById('stu-panel-game').classList.toggle('hidden', active !== 'game');
+        document.getElementById('stu-panel-leaderboard').classList.toggle('hidden', active !== 'leaderboard');
+
+        if (active === 'leaderboard') {
+          renderLeaderboardTable();
+        } else if (active === 'game') {
+          renderQuizArena();
+          if (!wmCurrentQuestion) generateWordMatchQuestion();
+        }
+      }
+
+      subVocabBtn.addEventListener('click', () => setStudentSubtab('vocab'));
+      subGameBtn.addEventListener('click', () => setStudentSubtab('game'));
+      subLbBtn.addEventListener('click', () => setStudentSubtab('leaderboard'));
+
+      // Web Speech API (en-US) дуудлага унших + Fallback
+      function speakEnglishWord(text) {
+        if (!text) return;
+        if ('speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined') {
+          try {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.92;
+
+            const voices = window.speechSynthesis.getVoices();
+            const enUsVoice = voices.find((v) => v.lang && v.lang.toLowerCase().startsWith('en-us'));
+            if (enUsVoice) {
+              utterance.voice = enUsVoice;
+            }
+
+            utterance.onerror = () => {
+              showToast(`🔊 Дуудлага (en-US): "${text}" — Таны хөтөч аудио синтез дэмжихгүй эсвэл дуу хаалттай байна.`, 'info');
+            };
+
+            window.speechSynthesis.speak(utterance);
+            showToast(`🔊 "${text}" (en-US)`, 'info');
+            return;
+          } catch (err) {
+            console.warn('SpeechSynthesis fallback:', err);
+          }
+        }
+        showToast(`🔊 Дуудлага: "${text}" (Энэ төхөөрөмжид аудио синтез байхгүй байна)`, 'info');
+      }
+
+      // Үгсийн картуудыг зурах
+      document.getElementById('vocab-search-input').addEventListener('input', renderFlashcards);
+      document.getElementById('vocab-category-filter').addEventListener('change', renderFlashcards);
+
+      function renderFlashcards() {
+        const grid = document.getElementById('flashcards-grid');
+        const q = (document.getElementById('vocab-search-input').value || '').trim().toLowerCase();
+        const cat = document.getElementById('vocab-category-filter').value;
+        const stu = getActiveStudentRecord();
+        const studiedSet = new Set(stu && Array.isArray(stu.studiedWordIds) ? stu.studiedWordIds : []);
+
+        const filtered = words.filter((w) => {
+          const matchesCat = cat === 'ALL' || w.category === cat;
+          const matchesQuery =
+            !q ||
+            w.en.toLowerCase().includes(q) ||
+            w.mn.toLowerCase().includes(q) ||
+            (w.ipa && w.ipa.toLowerCase().includes(q)) ||
+            (w.example && w.example.toLowerCase().includes(q));
+          return matchesCat && matchesQuery;
+        });
+
+        if (filtered.length === 0) {
+          grid.innerHTML = `
+            <div class="col-span-full bg-white rounded-2xl border border-dashed border-slate-300 p-10 text-center text-slate-500">
+              Хайлтад тохирох үг олдсонгүй.
+            </div>
+          `;
+          return;
+        }
+
+        grid.innerHTML = filtered
+          .map((w) => {
+            const isStudied = studiedSet.has(w.id);
+            return `
+              <div class="bg-white rounded-2xl border ${
+                isStudied ? 'border-emerald-200 bg-emerald-50/20' : 'border-slate-200'
+              } p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between gap-4">
+                <div class="space-y-2">
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-50 text-indigo-700">
+                      ${esc(w.category || 'Academic')}
+                    </span>
+                    ${
+                      isStudied
+                        ? '<span class="text-xs font-extrabold text-emerald-700">✓ Цээжилсэн</span>'
+                        : '<span class="text-[11px] font-semibold text-slate-400">+10 оноо</span>'
+                    }
+                  </div>
+
+                  <div class="flex items-baseline justify-between gap-2 flex-wrap pt-1">
+                    <h3 class="text-xl font-extrabold text-slate-900">${esc(w.en)}</h3>
+                    ${
+                      w.ipa
+                        ? `<span class="text-xs font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">${esc(w.ipa)}</span>`
+                        : ''
+                    }
+                  </div>
+
+                  <p class="text-base font-bold text-indigo-700">${esc(w.mn)}</p>
+
+                  ${
+                    w.example
+                      ? `<p class="text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100 italic leading-relaxed">"${esc(w.example)}"</p>`
+                      : ''
+                  }
+                </div>
+
+                <div class="flex items-center gap-2 pt-2 border-t border-slate-100">
+                  <button
+                    type="button"
+                    data-speak-word="${esc(w.en)}"
+                    class="speak-btn flex-1 py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-extrabold transition cursor-pointer flex items-center justify-center gap-1.5"
+                  >
+                    <span>🔊</span>
+                    <span>Дуудлага сонсох</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    data-mark-word="${esc(w.id)}"
+                    ${isStudied ? 'disabled' : ''}
+                    class="mark-studied-btn flex-1 py-2 px-3 rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-1 ${
+                      isStudied
+                        ? 'bg-emerald-100 text-emerald-800 cursor-default'
+                        : 'bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer shadow-sm'
+                    }"
+                  >
+                    <span>${isStudied ? 'Цээжилсэн ✓' : 'Цээжилсэн (+10)'}</span>
+                  </button>
+                </div>
+              </div>
+            `;
+          })
+          .join('');
+
+        grid.querySelectorAll('.speak-btn').forEach((btn) => {
+          btn.addEventListener('click', () => speakEnglishWord(btn.dataset.speakWord));
+        });
+
+        grid.querySelectorAll('.mark-studied-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const wordId = btn.dataset.markWord;
+            const stu = getActiveStudentRecord();
+            if (!stu) {
+              showToast('Сурагчаар нэвтэрсэн үед оноо нэмэгдэнэ.', 'info');
+              return;
+            }
+            if (!Array.isArray(stu.studiedWordIds)) stu.studiedWordIds = [];
+            if (!stu.studiedWordIds.includes(wordId)) {
+              stu.studiedWordIds.push(wordId);
+              stu.score = (stu.score || 0) + 10;
+              saveStorage(STORAGE_KEYS.STUDENTS, students);
+              refreshHeaderAndStats();
+              renderFlashcards();
+              showToast('Үг цээжиллээ! +10 оноо нэмэгдлээ.', 'success');
+            }
+          });
+        });
+      }
+
+      // Тоглоомын дотоод горим солих (Quiz <-> Үг/Утга <-> 60с Хурд <-> Үсэг эвлүүлэх)
+      const modeBtnQuiz = document.getElementById('mode-btn-quiz');
+      const modeBtnWordmatch = document.getElementById('mode-btn-wordmatch');
+      const modeBtnBlitz = document.getElementById('mode-btn-blitz');
+      const modeBtnScramble = document.getElementById('mode-btn-scramble');
+
+      function setGameMode(mode) {
+        const inactiveBtnCls =
+          'px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-slate-100 text-slate-700 hover:bg-slate-200 transition cursor-pointer';
+
+        modeBtnQuiz.className =
+          mode === 'quiz'
+            ? 'px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-indigo-600 text-white shadow-sm transition cursor-pointer'
+            : inactiveBtnCls;
+        modeBtnWordmatch.className =
+          mode === 'wordmatch'
+            ? 'px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-violet-600 text-white shadow-sm transition cursor-pointer'
+            : inactiveBtnCls;
+        modeBtnBlitz.className =
+          mode === 'blitz'
+            ? 'px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-amber-500 text-white shadow-sm transition cursor-pointer'
+            : inactiveBtnCls;
+        modeBtnScramble.className =
+          mode === 'scramble'
+            ? 'px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-sky-600 text-white shadow-sm transition cursor-pointer'
+            : inactiveBtnCls;
+
+        document.getElementById('quiz-arena').classList.toggle('hidden', mode !== 'quiz');
+        document.getElementById('wordmatch-arena').classList.toggle('hidden', mode !== 'wordmatch');
+        document.getElementById('blitz-arena').classList.toggle('hidden', mode !== 'blitz');
+        document.getElementById('scramble-arena').classList.toggle('hidden', mode !== 'scramble');
+
+        if (mode !== 'blitz' && blitzRunning) {
+          stopBlitzGame(false);
+        }
+
+        if (mode === 'quiz') {
+          renderQuizArena();
+        } else if (mode === 'wordmatch') {
+          generateWordMatchQuestion();
+        } else if (mode === 'scramble' && !scrambleTargetWord) {
+          initScrambleRound();
+        }
+      }
+
+      modeBtnQuiz.addEventListener('click', () => setGameMode('quiz'));
+      modeBtnWordmatch.addEventListener('click', () => setGameMode('wordmatch'));
+      modeBtnBlitz.addEventListener('click', () => setGameMode('blitz'));
+      modeBtnScramble.addEventListener('click', () => setGameMode('scramble'));
+
+      // Quiz Тестүүдийг зурах
+      function renderQuizArena() {
+        const box = document.getElementById('quiz-card-box');
+        const label = document.getElementById('quiz-progress-label');
+
+        if (!Array.isArray(quizzes) || quizzes.length === 0) {
+          label.textContent = '0 / 0';
+          box.innerHTML = `
+            <div class="p-8 rounded-2xl border border-dashed border-slate-300 text-center text-slate-500">
+              Одоогоор quiz асуулт алга байна. "Багш" таб дээр шинэ quiz нэмээрэй.
+            </div>
+          `;
+          return;
+        }
+
+        if (quizIndex >= quizzes.length) quizIndex = 0;
+        if (quizIndex < 0) quizIndex = quizzes.length - 1;
+
+        const q = quizzes[quizIndex];
+        label.textContent = `${quizIndex + 1} / ${quizzes.length}`;
+        const prevAnswer = quizAnsweredMap[q.id];
+
+        box.innerHTML = `
+          <div class="bg-slate-50 rounded-2xl border border-slate-200 p-5 sm:p-6 space-y-5">
+            <div class="flex items-center justify-between gap-2">
+              <span class="px-3 py-1 rounded-full bg-indigo-100 text-indigo-800 text-xs font-extrabold">
+                Асуулт #${quizIndex + 1}
+              </span>
+              <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-extrabold">
+                +${q.points || 20} оноо
+              </span>
+            </div>
+
+            <h3 class="text-lg sm:text-xl font-extrabold text-slate-900 leading-snug">
+              ${esc(q.question)}
+            </h3>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              ${(q.options || [])
+                .map((opt, idx) => {
+                  let btnCls = 'border-slate-200 bg-white hover:border-indigo-400 hover:bg-indigo-50/40 text-slate-800';
+                  if (prevAnswer) {
+                    if (idx === Number(q.correctIndex)) {
+                      btnCls = 'border-emerald-500 bg-emerald-50 text-emerald-950 ring-2 ring-emerald-500/20';
+                    } else if (idx === prevAnswer.chosen && !prevAnswer.isCorrect) {
+                      btnCls = 'border-rose-500 bg-rose-50 text-rose-950';
+                    } else {
+                      btnCls = 'border-slate-200 bg-white opacity-60 text-slate-600';
+                    }
+                  }
+                  return `
+                    <button
+                      type="button"
+                      data-quiz-opt="${idx}"
+                      ${prevAnswer ? 'disabled' : ''}
+                      class="quiz-choice-btn p-4 rounded-2xl border-2 text-left font-bold text-sm transition flex items-center gap-3 ${
+                        prevAnswer ? 'cursor-default' : 'cursor-pointer'
+                      } ${btnCls}"
+                    >
+                      <span class="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 text-xs font-extrabold flex items-center justify-center shrink-0">
+                        ${['A', 'B', 'C', 'D'][idx] || idx + 1}
+                      </span>
+                      <span>${esc(opt)}</span>
+                    </button>
+                  `;
+                })
+                .join('')}
+            </div>
+
+            <div id="quiz-result-banner" class="${
+              prevAnswer ? '' : 'hidden'
+            } p-4 rounded-2xl text-sm font-bold ${
+          prevAnswer && prevAnswer.isCorrect
+            ? 'bg-emerald-50 border border-emerald-200 text-emerald-900'
+            : 'bg-rose-50 border border-rose-200 text-rose-900'
+        }">
+              ${
+                prevAnswer
+                  ? prevAnswer.isCorrect
+                    ? `🎉 Зөв хариулт! +${q.points || 20} оноо авлаа.`
+                    : `Хариулт буруу. Зөв сонголт: "${esc((q.options || [])[q.correctIndex] || '')}"`
+                  : ''
+              }
+            </div>
+          </div>
+        `;
+
+        box.querySelectorAll('.quiz-choice-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            if (quizAnsweredMap[q.id]) return;
+            const chosen = Number(btn.dataset.quizOpt);
+            const isCorrect = chosen === Number(q.correctIndex);
+            quizAnsweredMap[q.id] = { chosen, isCorrect };
+
+            if (currentUser && currentUser.role === 'student') {
+              recordAnswerResult(isCorrect, isCorrect ? q.points || 20 : 0);
+            } else {
+              showToast(isCorrect ? 'Зөв хариулт!' : 'Буруу хариулт.', isCorrect ? 'success' : 'error');
+            }
+
+            renderQuizArena();
+          });
+        });
+      }
+
+      document.getElementById('quiz-prev-btn').addEventListener('click', () => {
+        if (quizzes.length === 0) return;
+        quizIndex = (quizIndex - 1 + quizzes.length) % quizzes.length;
+        renderQuizArena();
+      });
+
+      document.getElementById('quiz-next-btn').addEventListener('click', () => {
+        if (quizzes.length === 0) return;
+        quizIndex = (quizIndex + 1) % quizzes.length;
+        renderQuizArena();
+      });
+
+      // Үг / Утгын Тоглоом (Vocabulary Word <-> Mongolian Meaning)
+      function generateWordMatchQuestion() {
+        const box = document.getElementById('wm-question-box');
+        wmAnswered = false;
+
+        if (!Array.isArray(words) || words.length < 2) {
+          box.innerHTML = `<p class="text-sm text-slate-500">Тоглоом ажиллуулахад дор хаяж 2 үг шаардлагатай.</p>`;
+          return;
+        }
+
+        const targetWord = words[Math.floor(Math.random() * words.length)];
+        const askEnToMn = Math.random() >= 0.45;
+
+        const distractors = words
+          .filter((w) => w.id !== targetWord.id)
+          .sort(() => Math.random() - 0.5)
+          .slice(0, 3);
+
+        const choices = [targetWord, ...distractors].sort(() => Math.random() - 0.5);
+
+        wmCurrentQuestion = {
+          targetWord,
+          askEnToMn,
+          choices
+        };
+
+        box.innerHTML = `
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-xs font-extrabold uppercase tracking-wider text-violet-700">
+              ${askEnToMn ? 'Англи үгийн монгол утгыг олоорой' : 'Монгол утгад тохирох англи үгийг олоорой'}
+            </span>
+            <span class="text-xs font-extrabold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg">+15 оноо</span>
+          </div>
+
+          <div class="flex items-center justify-between gap-3 flex-wrap">
+            <div class="text-2xl font-extrabold text-slate-900">
+              ${askEnToMn ? esc(targetWord.en) : esc(targetWord.mn)}
+            </div>
+            ${
+              askEnToMn
+                ? `<button type="button" id="wm-speak-btn" class="px-3 py-1.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-100 text-xs font-bold text-slate-700 cursor-pointer">🔊 Сонсох</button>`
+                : ''
+            }
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            ${choices
+              .map((ch, i) => {
+                const labelText = askEnToMn ? ch.mn : ch.en;
+                return `
+                  <button
+                    type="button"
+                    data-wm-id="${esc(ch.id)}"
+                    class="wm-choice-btn p-3.5 rounded-xl border-2 border-slate-200 bg-white hover:border-violet-400 hover:bg-violet-50/40 text-left font-bold text-sm text-slate-800 transition cursor-pointer"
+                  >
+                    <span class="mr-2 text-xs font-extrabold text-slate-400">${i + 1}.</span>
+                    <span>${esc(labelText)}</span>
+                  </button>
+                `;
+              })
+              .join('')}
+          </div>
+
+          <div id="wm-feedback" class="hidden p-3.5 rounded-xl text-sm font-bold"></div>
+        `;
+
+        const speakBtn = document.getElementById('wm-speak-btn');
+        if (speakBtn) {
+          speakBtn.addEventListener('click', () => speakEnglishWord(targetWord.en));
+        }
+
+        box.querySelectorAll('.wm-choice-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            if (wmAnswered) return;
+            wmAnswered = true;
+            const pickedId = btn.dataset.wmId;
+            const isCorrect = pickedId === targetWord.id;
+
+            box.querySelectorAll('.wm-choice-btn').forEach((b) => {
+              b.disabled = true;
+              if (b.dataset.wmId === targetWord.id) {
+                b.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-950');
+              } else if (b.dataset.wmId === pickedId && !isCorrect) {
+                b.classList.add('border-rose-500', 'bg-rose-50', 'text-rose-950');
+              }
+            });
+
+            const fb = document.getElementById('wm-feedback');
+            fb.classList.remove('hidden');
+            if (isCorrect) {
+              fb.className = 'p-3.5 rounded-xl text-sm font-bold bg-emerald-50 border border-emerald-200 text-emerald-900';
+              fb.textContent = `🎉 Зөв! "${targetWord.en}" = "${targetWord.mn}" (+15 оноо)`;
+              if (currentUser && currentUser.role === 'student') {
+                recordAnswerResult(true, 15);
+              }
+              showToast('Зөв таарлаа! +15 оноо', 'success');
+            } else {
+              fb.className = 'p-3.5 rounded-xl text-sm font-bold bg-rose-50 border border-rose-200 text-rose-900';
+              fb.textContent = `Буруу байна. Зөв хос: "${targetWord.en}" — "${targetWord.mn}"`;
+              if (currentUser && currentUser.role === 'student') {
+                recordAnswerResult(false, 0);
+              }
+              showToast('Хариулт буруу байна.', 'error');
+            }
+          });
+        });
+      }
+
+      document.getElementById('wm-next-round-btn').addEventListener('click', generateWordMatchQuestion);
+
+      // =====================================================================
+      // ТОГЛООМ 3: 60 СЕКУНДЫН ХУРДНЫ СОРИЛ (SPEED BLITZ)
+      // =====================================================================
+      function stopBlitzGame(showSummary = true) {
+        if (blitzInterval) {
+          clearInterval(blitzInterval);
+          blitzInterval = null;
+        }
+        blitzRunning = false;
+
+        const timerBox = document.getElementById('blitz-timer-box');
+        if (timerBox) {
+          timerBox.className = 'px-4 py-1.5 rounded-xl bg-slate-900 text-white text-xs sm:text-sm font-extrabold';
+        }
+
+        if (showSummary) {
+          const board = document.getElementById('blitz-board');
+          board.innerHTML = `
+            <div class="text-4xl">🏁</div>
+            <h3 class="text-xl font-extrabold text-slate-900">Хугацаа дууслаа!</h3>
+            <p class="text-sm text-slate-600">
+              Та 60 секундэд <strong class="text-indigo-700">${blitzCorrectTotal} үг</strong> зөв тааж,
+              нийт <strong class="text-emerald-700">+${blitzRoundScore} оноо</strong> цуглууллаа!
+            </p>
+            <button
+              type="button"
+              id="blitz-restart-btn"
+              class="px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-sm shadow-md transition cursor-pointer"
+            >
+              Дахин тоглох ↻
+            </button>
+          `;
+          const restartBtn = document.getElementById('blitz-restart-btn');
+          if (restartBtn) restartBtn.addEventListener('click', startBlitzGame);
+          showToast(`Хурдны сорил дууслаа! +${blitzRoundScore} оноо`, 'success');
+        }
+      }
+
+      function renderBlitzQuestion() {
+        const board = document.getElementById('blitz-board');
+        if (!Array.isArray(words) || words.length < 2) {
+          board.innerHTML = `<p class="text-sm text-slate-500">Тоглоход дор хаяж 2 үг шаардлагатай.</p>`;
+          return;
+        }
+
+        const target = words[Math.floor(Math.random() * words.length)];
+        const distractors = words
+          .filter((w) => w.id !== target.id)
+          .sort(() => Math.random() - 0.5)
+          .slice(0, 3);
+        const options = [target, ...distractors].sort(() => Math.random() - 0.5);
+
+        board.innerHTML = `
+          <div class="text-left space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-extrabold uppercase tracking-wider text-amber-700">Хурдан сонгоорой!</span>
+              <span class="text-xs font-bold text-slate-500">Зөв бол +${10 + (blitzCombo - 1) * 5} оноо</span>
+            </div>
+            <div class="text-2xl sm:text-3xl font-extrabold text-slate-900">${esc(target.en)}</div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              ${options
+                .map(
+                  (opt) => `
+                <button
+                  type="button"
+                  data-blitz-id="${esc(opt.id)}"
+                  class="blitz-opt-btn p-3.5 rounded-xl border-2 border-slate-200 bg-white hover:border-amber-400 hover:bg-amber-50/50 text-left font-bold text-sm text-slate-800 transition cursor-pointer"
+                >
+                  ${esc(opt.mn)}
+                </button>
+              `
+                )
+                .join('')}
+            </div>
+          </div>
+        `;
+
+        board.querySelectorAll('.blitz-opt-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            if (!blitzRunning) return;
+            const isCorrect = btn.dataset.blitzId === target.id;
+            if (isCorrect) {
+              const earned = Math.min(25, 10 + (blitzCombo - 1) * 5);
+              blitzRoundScore += earned;
+              blitzCorrectTotal += 1;
+              blitzCombo = Math.min(4, blitzCombo + 1);
+              if (currentUser && currentUser.role === 'student') {
+                recordAnswerResult(true, earned);
+              }
+            } else {
+              blitzCombo = 1;
+              if (currentUser && currentUser.role === 'student') {
+                recordAnswerResult(false, 0);
+              }
+            }
+
+            document.getElementById('blitz-combo').textContent = blitzCombo;
+            document.getElementById('blitz-round-score').textContent = blitzRoundScore;
+            renderBlitzQuestion();
+          });
+        });
+      }
+
+      function startBlitzGame() {
+        if (blitzInterval) clearInterval(blitzInterval);
+        blitzTimeLeft = 60;
+        blitzRunning = true;
+        blitzRoundScore = 0;
+        blitzCombo = 1;
+        blitzCorrectTotal = 0;
+
+        document.getElementById('blitz-timer').textContent = '60';
+        document.getElementById('blitz-combo').textContent = '1';
+        document.getElementById('blitz-round-score').textContent = '0';
+        document.getElementById('blitz-timer-box').className =
+          'px-4 py-1.5 rounded-xl bg-slate-900 text-white text-xs sm:text-sm font-extrabold';
+
+        renderBlitzQuestion();
+
+        blitzInterval = setInterval(() => {
+          blitzTimeLeft -= 1;
+          const timerEl = document.getElementById('blitz-timer');
+          const timerBox = document.getElementById('blitz-timer-box');
+          if (timerEl) timerEl.textContent = Math.max(0, blitzTimeLeft);
+          if (blitzTimeLeft <= 10 && timerBox) {
+            timerBox.className =
+              'px-4 py-1.5 rounded-xl bg-rose-600 text-white text-xs sm:text-sm font-extrabold animate-pulse';
+          }
+          if (blitzTimeLeft <= 0) {
+            stopBlitzGame(true);
+          }
+        }, 1000);
+      }
+
+      document.getElementById('blitz-start-btn').addEventListener('click', startBlitzGame);
+
+      // =====================================================================
+      // ТОГЛООМ 4: ҮСЭГ ЭВЛҮҮЛЭХ (WORD SCRAMBLE)
+      // =====================================================================
+      function initScrambleRound() {
+        const box = document.getElementById('scramble-box');
+        scrambleSolved = false;
+        scramblePickedIndices = [];
+
+        const candidates = words.filter((w) => /^[a-zA-Z]{4,14}$/.test((w.en || '').trim()));
+        if (candidates.length === 0) {
+          box.innerHTML = `<p class="text-sm text-slate-500">Үсэг эвлүүлэхэд тохирох ганц үг олдсонгүй.</p>`;
+          return;
+        }
+
+        scrambleTargetWord = candidates[Math.floor(Math.random() * candidates.length)];
+        const letters = scrambleTargetWord.en.trim().toUpperCase().split('');
+        scrambleTiles = letters.slice().sort(() => Math.random() - 0.5);
+        if (scrambleTiles.join('') === letters.join('') && letters.length > 1) {
+          scrambleTiles.reverse();
+        }
+
+        renderScrambleBoard();
+      }
+
+      function renderScrambleBoard() {
+        const box = document.getElementById('scramble-box');
+        if (!scrambleTargetWord) return;
+
+        const targetUpper = scrambleTargetWord.en.trim().toUpperCase();
+        const builtWord = scramblePickedIndices.map((idx) => scrambleTiles[idx]).join('');
+
+        box.innerHTML = `
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <span class="text-xs font-extrabold uppercase tracking-wider text-sky-700">Монгол утга:</span>
+              <h3 class="text-lg sm:text-xl font-extrabold text-slate-900 mt-0.5">${esc(scrambleTargetWord.mn)}</h3>
+            </div>
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                id="scr-speak-btn"
+                class="px-3 py-1.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-100 text-xs font-bold text-slate-700 cursor-pointer"
+              >
+                🔊 Дуудлага
+              </button>
+              <button
+                type="button"
+                id="scr-clear-btn"
+                ${scrambleSolved || scramblePickedIndices.length === 0 ? 'disabled' : ''}
+                class="px-3 py-1.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-100 disabled:opacity-40 text-xs font-bold text-slate-700 cursor-pointer"
+              >
+                ↺ Арилгах
+              </button>
+            </div>
+          </div>
+
+          <!-- Бүтээж буй үгийн нүднүүд -->
+          <div class="flex flex-wrap justify-center gap-2 py-3 px-2 rounded-2xl bg-white border-2 border-dashed border-sky-200 min-h-[64px] items-center">
+            ${targetUpper
+              .split('')
+              .map((_, pos) => {
+                const pickedIdx = scramblePickedIndices[pos];
+                const char = pickedIdx !== undefined ? scrambleTiles[pickedIdx] : '';
+                return `
+                  <button
+                    type="button"
+                    data-scr-slot="${pos}"
+                    ${!char || scrambleSolved ? 'disabled' : ''}
+                    class="scr-slot-btn w-10 h-11 sm:w-11 sm:h-12 rounded-xl font-extrabold text-base sm:text-lg flex items-center justify-center border-2 transition ${
+                      char
+                        ? scrambleSolved
+                          ? 'bg-emerald-50 border-emerald-500 text-emerald-900'
+                          : 'bg-sky-600 border-sky-600 text-white shadow-sm cursor-pointer hover:bg-sky-700'
+                        : 'bg-slate-50 border-slate-200 text-slate-300'
+                    }"
+                  >
+                    ${char || '_'}
+                  </button>
+                `;
+              })
+              .join('')}
+          </div>
+
+          <!-- Холилдсон үсгийн товчнууд -->
+          <div class="flex flex-wrap justify-center gap-2">
+            ${scrambleTiles
+              .map((ch, idx) => {
+                const used = scramblePickedIndices.includes(idx);
+                return `
+                  <button
+                    type="button"
+                    data-scr-tile="${idx}"
+                    ${used || scrambleSolved ? 'disabled' : ''}
+                    class="scr-tile-btn w-11 h-12 rounded-xl font-extrabold text-base sm:text-lg border-2 transition ${
+                      used
+                        ? 'bg-slate-100 border-slate-200 text-slate-300 cursor-default'
+                        : 'bg-white border-slate-300 hover:border-sky-500 hover:bg-sky-50 text-slate-900 shadow-sm cursor-pointer active:scale-95'
+                    }"
+                  >
+                    ${esc(ch)}
+                  </button>
+                `;
+              })
+              .join('')}
+          </div>
+
+          <div id="scr-feedback" class="${
+            builtWord.length === targetUpper.length ? '' : 'hidden'
+          } p-3.5 rounded-xl text-sm font-bold text-center ${
+          scrambleSolved
+            ? 'bg-emerald-50 border border-emerald-200 text-emerald-900'
+            : 'bg-rose-50 border border-rose-200 text-rose-900'
+        }">
+            ${
+              builtWord.length === targetUpper.length
+                ? scrambleSolved
+                  ? `🎉 Гайхалтай! "${esc(scrambleTargetWord.en)}" үгийг зөв эвлүүллээ (+20 оноо)`
+                  : `Буруу дараалал байна ("${esc(builtWord)}"). Үсэг дээр дарж буцаагаад дахин оролдоорой!`
+                : ''
+            }
+          </div>
+        `;
+
+        document.getElementById('scr-speak-btn').addEventListener('click', () => {
+          speakEnglishWord(scrambleTargetWord.en);
+        });
+
+        document.getElementById('scr-clear-btn').addEventListener('click', () => {
+          if (scrambleSolved) return;
+          scramblePickedIndices = [];
+          renderScrambleBoard();
+        });
+
+        box.querySelectorAll('.scr-tile-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            if (scrambleSolved) return;
+            const tileIdx = Number(btn.dataset.scrTile);
+            if (!scramblePickedIndices.includes(tileIdx)) {
+              scramblePickedIndices.push(tileIdx);
+              const currentAttempt = scramblePickedIndices.map((i) => scrambleTiles[i]).join('');
+              if (currentAttempt === targetUpper) {
+                scrambleSolved = true;
+                if (currentUser && currentUser.role === 'student') {
+                  recordAnswerResult(true, 20);
+                }
+                showToast(`Зөв эвлүүллээ: ${scrambleTargetWord.en} (+20 оноо)`, 'success');
+              }
+              renderScrambleBoard();
+            }
+          });
+        });
+
+        box.querySelectorAll('.scr-slot-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            if (scrambleSolved) return;
+            const slotPos = Number(btn.dataset.scrSlot);
+            scramblePickedIndices.splice(slotPos, 1);
+            renderScrambleBoard();
+          });
+        });
+      }
+
+      document.getElementById('scramble-next-btn').addEventListener('click', initScrambleRound);
+
+      // Тэргүүлэгчид (Leaderboard) хүснэгт зурах
+      const lbClassFilter = document.getElementById('leaderboard-class-filter');
+      lbClassFilter.addEventListener('change', renderLeaderboardTable);
+
+      function renderLeaderboardTable() {
+        const currentSelected = lbClassFilter.value || 'ALL';
+        lbClassFilter.innerHTML = `<option value="ALL">Бүх 12-р анги (12а–12ж)</option>`;
+        CLASSES_12.forEach((cls) => {
+          const opt = document.createElement('option');
+          opt.value = cls;
+          opt.textContent = `${cls} бүлэг`;
+          lbClassFilter.appendChild(opt);
+        });
+        lbClassFilter.value = currentSelected;
+
+        const tbody = document.getElementById('leaderboard-tbody');
+        const activeStu = getActiveStudentRecord();
+
+        const list = students
+          .filter((s) => currentSelected === 'ALL' || s.className === currentSelected)
+          .slice()
+          .sort((a, b) => (b.score || 0) - (a.score || 0));
+
+        if (list.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="5" class="py-8 px-4 text-center text-slate-500">
+                Энэ шүүлтүүрт тохирох сурагч хараахан бүртгэгдээгүй байна.
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        tbody.innerHTML = list
+          .map((s, idx) => {
+            const isMe = activeStu && s.id === activeStu.id;
+            const rankBadge = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`;
+            return `
+              <tr class="${isMe ? 'bg-indigo-50/80 font-semibold' : 'hover:bg-slate-50'}">
+                <td class="py-3.5 px-4 font-extrabold">${rankBadge}</td>
+                <td class="py-3.5 px-4 text-slate-900">
+                  ${esc(s.name)}
+                  ${isMe ? '<span class="ml-1.5 text-xs font-extrabold text-indigo-600">(Та)</span>' : ''}
+                </td>
+                <td class="py-3.5 px-4">
+                  <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700">${esc(s.className)}</span>
+                </td>
+                <td class="py-3.5 px-4 text-slate-600">${esc(s.teacherName || '—')}</td>
+                <td class="py-3.5 px-4 text-right font-extrabold text-indigo-700">${Number(s.score) || 0}</td>
+              </tr>
+            `;
+          })
+          .join('');
+      }
+
+      // =====================================================================
+      // БАГШИЙН ТАБ: ҮГ, QUIZ, БАГШ НЭМЭХ/УСТГАХ, СУРАГЧ НЭМЭХ/УСТГАХ, ХҮСЭЛТҮҮД
+      // =====================================================================
+      // Шинэ үг нэмэх
+      document.getElementById('teacher-add-word-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const en = document.getElementById('t-word-en').value.trim();
+        const ipa = document.getElementById('t-word-ipa').value.trim();
+        const mn = document.getElementById('t-word-mn').value.trim();
+        const category = document.getElementById('t-word-category').value;
+        const example = document.getElementById('t-word-example').value.trim();
+
+        if (!en || !mn) {
+          showToast('Англи үг болон монгол орчуулгыг заавал оруулна уу.', 'error');
+          return;
+        }
+
+        words.unshift({
+          id: 'w-' + Date.now() + '-' + Math.random().toString(36).slice(2, 5),
+          en,
+          ipa,
+          mn,
+          category,
+          example
+        });
+        saveStorage(STORAGE_KEYS.WORDS, words);
+        e.target.reset();
+        refreshAllViews();
+        showToast(`"${en}" үг нэмэгдлээ!`, 'success');
+      });
+
+      // Шинэ Quiz нэмэх
+      document.getElementById('teacher-add-quiz-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const question = document.getElementById('t-quiz-question').value.trim();
+        const options = [0, 1, 2, 3].map((i) => document.getElementById(`t-opt-${i}`).value.trim());
+        const correctIndex = Number(document.getElementById('t-quiz-correct').value);
+        const points = Math.max(5, Number(document.getElementById('t-quiz-points').value) || 20);
+
+        if (!question || options.some((o) => !o)) {
+          showToast('Асуулт болон бүх 4 сонголтыг бөглөнө үү.', 'error');
+          return;
+        }
+
+        quizzes.unshift({
+          id: 'q-' + Date.now() + '-' + Math.random().toString(36).slice(2, 5),
+          question,
+          options,
+          correctIndex,
+          points
+        });
+        saveStorage(STORAGE_KEYS.QUIZZES, quizzes);
+        e.target.reset();
+        refreshAllViews();
+        showToast('Шинэ Quiz асуулт нэмэгдлээ!', 'success');
+      });
+
+      // Багш нарын жагсаалтад багш нэмэх
+      document.getElementById('teacher-manage-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('m-teacher-name').value.trim();
+        const subject = document.getElementById('m-teacher-subject').value.trim();
+
+        if (name.length < 2) {
+          showToast('Багшийн нэрийг оруулна уу.', 'error');
+          return;
+        }
+
+        teachers.unshift({
+          id: 't-' + Date.now() + '-' + Math.random().toString(36).slice(2, 5),
+          name,
+          subject: subject || '12-р ангийн Англи хэл'
+        });
+        saveStorage(STORAGE_KEYS.TEACHERS, teachers);
+        e.target.reset();
+        populateRegistrationTeachers();
+        refreshAllViews();
+        showToast(`"${name}" багш нэмэгдлээ!`, 'success');
+      });
+
+      // Багшийн самбараас шинэ сурагч нэмэх
+      document.getElementById('teacher-add-student-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const sName = document.getElementById('m-student-name').value.trim();
+        const sClass = document.getElementById('m-student-class').value;
+        const sTeacher =
+          document.getElementById('m-student-teacher').value ||
+          (teachers[0] ? teachers[0].name : 'Бүртгэлтэй багшгүй');
+        const sScore = Math.max(0, Number(document.getElementById('m-student-score').value) || 0);
+
+        if (sName.length < 2) {
+          showToast('Сурагчийн нэрийг дор хаяж 2 үсэгтэй оруулна уу.', 'error');
+          return;
+        }
+
+        const newStu = {
+          id: 'stu-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+          name: sName,
+          className: sClass || '12а',
+          teacherName: sTeacher,
+          score: sScore,
+          streak: 0,
+          bestStreak: 0,
+          correctCount: 0,
+          answeredCount: 0,
+          studiedWordIds: []
+        };
+
+        students.unshift(newStu);
+        saveStorage(STORAGE_KEYS.STUDENTS, students);
+
+        e.target.reset();
+        document.getElementById('m-student-score').value = '0';
+        refreshAllViews();
+        showToast(`"${sName}" (${sClass}) сурагч нэмэгдлээ!`, 'success');
+      });
+
+      // Багшийн хяналтын шүүлтүүрүүд
+      document.getElementById('overview-class-filter').addEventListener('change', renderTeacherStudentOverview);
+      document.getElementById('overview-teacher-filter').addEventListener('change', renderTeacherStudentOverview);
+
+      function renderTeacherPanel() {
+        document.getElementById('t-words-count').textContent = words.length;
+        document.getElementById('t-quizzes-count').textContent = quizzes.length;
+        document.getElementById('t-teachers-count').textContent = teachers.length;
+        document.getElementById('t-students-manage-count').textContent = students.length;
+
+        // Сурагч нэмэх формын бүлэг & багш select-ийг шинэчлэх
+        const mClassSel = document.getElementById('m-student-class');
+        const prevMClass = mClassSel.value || '12а';
+        mClassSel.innerHTML = '';
+        CLASSES_12.forEach((cls) => {
+          const opt = document.createElement('option');
+          opt.value = cls;
+          opt.textContent = `${cls} бүлэг`;
+          mClassSel.appendChild(opt);
+        });
+        mClassSel.value = prevMClass;
+
+        const mTeacherSel = document.getElementById('m-student-teacher');
+        const prevMTeacher = mTeacherSel.value;
+        mTeacherSel.innerHTML = '';
+        if (teachers.length === 0) {
+          const opt = document.createElement('option');
+          opt.value = 'Бүртгэлтэй багшгүй';
+          opt.textContent = 'Бүртгэлтэй багшгүй';
+          mTeacherSel.appendChild(opt);
+        } else {
+          teachers.forEach((t) => {
+            const opt = document.createElement('option');
+            opt.value = t.name;
+            opt.textContent = t.name;
+            mTeacherSel.appendChild(opt);
+          });
+          if (prevMTeacher && teachers.some((t) => t.name === prevMTeacher)) {
+            mTeacherSel.value = prevMTeacher;
+          }
+        }
+
+        // Үгсийн жагсаалт + устгах
+        const wordsListEl = document.getElementById('t-words-live-list');
+        wordsListEl.innerHTML =
+          words.length === 0
+            ? `<p class="text-xs text-slate-400 py-3">Үг байхгүй байна.</p>`
+            : words
+                .map(
+                  (w) => `
+                <div class="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm">
+                  <div class="min-w-0">
+                    <span class="font-extrabold text-slate-900">${esc(w.en)}</span>
+                    ${w.ipa ? `<span class="text-slate-400 font-mono text-xs ml-1">${esc(w.ipa)}</span>` : ''}
+                    <span class="text-slate-400 mx-1.5">—</span>
+                    <span class="text-slate-700 font-medium">${esc(w.mn)}</span>
+                  </div>
+                  <button
+                    type="button"
+                    data-delete-word="${esc(w.id)}"
+                    class="t-del-word-btn px-2.5 py-1 rounded-lg text-xs font-bold text-rose-600 hover:bg-rose-50 transition cursor-pointer shrink-0"
+                  >
+                    Устгах
+                  </button>
+                </div>
+              `
+                )
+                .join('');
+
+        wordsListEl.querySelectorAll('.t-del-word-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            words = words.filter((item) => item.id !== btn.dataset.deleteWord);
+            saveStorage(STORAGE_KEYS.WORDS, words);
+            refreshAllViews();
+            showToast('Үг устгагдлаа.', 'info');
+          });
+        });
+
+        // Quiz жагсаалт + устгах
+        const quizzesListEl = document.getElementById('t-quizzes-live-list');
+        quizzesListEl.innerHTML =
+          quizzes.length === 0
+            ? `<p class="text-xs text-slate-400 py-3">Quiz асуулт байхгүй байна.</p>`
+            : quizzes
+                .map(
+                  (q) => `
+                <div class="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm">
+                  <div class="min-w-0">
+                    <span class="font-bold text-slate-900">${esc(q.question)}</span>
+                    <span class="ml-2 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[11px] font-extrabold">+${q.points || 20}</span>
+                  </div>
+                  <button
+                    type="button"
+                    data-delete-quiz="${esc(q.id)}"
+                    class="t-del-quiz-btn px-2.5 py-1 rounded-lg text-xs font-bold text-rose-600 hover:bg-rose-50 transition cursor-pointer shrink-0"
+                  >
+                    Устгах
+                  </button>
+                </div>
+              `
+                )
+                .join('');
+
+        quizzesListEl.querySelectorAll('.t-del-quiz-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            quizzes = quizzes.filter((item) => item.id !== btn.dataset.deleteQuiz);
+            saveStorage(STORAGE_KEYS.QUIZZES, quizzes);
+            refreshAllViews();
+            showToast('Quiz устгагдлаа.', 'info');
+          });
+        });
+
+        // Багш нарын жагсаалт + устгах
+        const teachersListEl = document.getElementById('t-teachers-list');
+        teachersListEl.innerHTML =
+          teachers.length === 0
+            ? `<p class="text-xs text-slate-400 py-2">Багш бүртгэгдээгүй байна.</p>`
+            : teachers
+                .map(
+                  (t) => `
+                <div class="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-violet-50/50 border border-violet-100 text-xs sm:text-sm">
+                  <div class="min-w-0">
+                    <div class="font-extrabold text-slate-900 truncate">${esc(t.name)}</div>
+                    <div class="text-[11px] text-slate-500 truncate">${esc(t.subject || '')}</div>
+                  </div>
+                  <button
+                    type="button"
+                    data-delete-teacher="${esc(t.id)}"
+                    class="t-del-teacher-btn px-2.5 py-1 rounded-lg text-xs font-bold text-rose-600 hover:bg-rose-50 transition cursor-pointer shrink-0"
+                  >
+                    Устгах
+                  </button>
+                </div>
+              `
+                )
+                .join('');
+
+        teachersListEl.querySelectorAll('.t-del-teacher-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const targetId = btn.dataset.deleteTeacher;
+            const removed = teachers.find((item) => item.id === targetId);
+            teachers = teachers.filter((item) => item.id !== targetId);
+            saveStorage(STORAGE_KEYS.TEACHERS, teachers);
+            populateRegistrationTeachers();
+            refreshAllViews();
+            showToast(`"${removed ? removed.name : 'Багш'}" устгагдлаа.`, 'info');
+          });
+        });
+
+        // Сурагчдын жагсаалт + устгах
+        const studentsManageEl = document.getElementById('t-students-manage-list');
+        studentsManageEl.innerHTML =
+          students.length === 0
+            ? `<p class="text-xs text-slate-400 py-2">Сурагч бүртгэгдээгүй байна.</p>`
+            : students
+                .map((s) => {
+                  return `
+                    <div class="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-indigo-50/40 border border-indigo-100 text-xs sm:text-sm">
+                      <div class="min-w-0">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                          <span class="font-extrabold text-slate-900">${esc(s.name)}</span>
+                          <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-slate-200/80 text-slate-800">${esc(s.className)}</span>
+                        </div>
+                        <div class="text-[11px] text-slate-500 truncate mt-0.5">
+                          Багш: ${esc(s.teacherName || '—')} • Оноо: <strong>${Number(s.score) || 0}</strong>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        data-delete-student="${esc(s.id)}"
+                        class="t-del-student-btn px-2.5 py-1 rounded-lg text-xs font-bold text-rose-600 hover:bg-rose-50 transition cursor-pointer shrink-0"
+                      >
+                        Устгах
+                      </button>
+                    </div>
+                  `;
+                })
+                .join('');
+
+        studentsManageEl.querySelectorAll('.t-del-student-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const stuId = btn.dataset.deleteStudent;
+            const targetStu = students.find((item) => item.id === stuId);
+            students = students.filter((item) => item.id !== stuId);
+            saveStorage(STORAGE_KEYS.STUDENTS, students);
+
+            // Хэрэв устгагдсан сурагч яг одоо нэвтэрсэн хэрэглэгч бол бүртгэлийн дэлгэц рүү буцаана
+            if (currentUser && currentUser.role === 'student' && currentUser.studentId === stuId) {
+              currentUser = null;
+              localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
+              document.getElementById('main-app').classList.add('hidden');
+              document.getElementById('auth-screen').classList.remove('hidden');
+              showToast('Таны сурагчийн бүртгэл багшаар устгагдлаа.', 'info');
+              return;
+            }
+
+            refreshAllViews();
+            showToast(`"${targetStu ? targetStu.name : 'Сурагч'}" бүртгэлээс устгагдлаа.`, 'info');
+          });
+        });
+
+        renderTeacherStudentOverview();
+      }
+
+      function renderTeacherStudentOverview() {
+        const classSel = document.getElementById('overview-class-filter');
+        const teacherSel = document.getElementById('overview-teacher-filter');
+
+        const prevClass = classSel.value || 'ALL';
+        const prevTeacher = teacherSel.value || 'ALL';
+
+        classSel.innerHTML = `<option value="ALL">Бүх бүлэг</option>`;
+        CLASSES_12.forEach((cls) => {
+          const opt = document.createElement('option');
+          opt.value = cls;
+          opt.textContent = cls;
+          classSel.appendChild(opt);
+        });
+        classSel.value = prevClass;
+
+        teacherSel.innerHTML = `<option value="ALL">Бүх багш</option>`;
+        const teacherNames = Array.from(
+          new Set([...teachers.map((t) => t.name), ...students.map((s) => s.teacherName).filter(Boolean)])
+        );
+        teacherNames.forEach((tName) => {
+          const opt = document.createElement('option');
+          opt.value = tName;
+          opt.textContent = tName;
+          teacherSel.appendChild(opt);
+        });
+        teacherSel.value = prevTeacher;
+
+        const filteredStudents = students.filter((s) => {
+          const okClass = prevClass === 'ALL' || s.className === prevClass;
+          const okTeacher = prevTeacher === 'ALL' || s.teacherName === prevTeacher;
+          return okClass && okTeacher;
+        });
+
+        const tbody = document.getElementById('teacher-students-tbody');
+        if (filteredStudents.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="6" class="py-8 px-4 text-center text-slate-500">
+                Тохирох сурагчийн мэдээлэл олдсонгүй.
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        tbody.innerHTML = filteredStudents
+          .slice()
+          .sort((a, b) => (b.score || 0) - (a.score || 0))
+          .map((s) => {
+            const lvl = computeLevelInfo(s.score || 0);
+            const acc =
+              s.answeredCount && s.answeredCount > 0
+                ? `${Math.round(((s.correctCount || 0) / s.answeredCount) * 100)}%`
+                : '—';
+            return `
+              <tr class="hover:bg-slate-50">
+                <td class="py-3 px-4 font-bold text-slate-900">${esc(s.name)}</td>
+                <td class="py-3 px-4">
+                  <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700">${esc(s.className)}</span>
+                </td>
+                <td class="py-3 px-4 text-slate-600">${esc(s.teacherName || '—')}</td>
+                <td class="py-3 px-4">
+                  <span class="px-2 py-0.5 rounded-md text-xs font-extrabold bg-indigo-50 text-indigo-700">Lv.${lvl.level}</span>
+                </td>
+                <td class="py-3 px-4 font-semibold text-emerald-700">${acc}</td>
+                <td class="py-3 px-4 text-right font-extrabold text-slate-900">${Number(s.score) || 0}</td>
+              </tr>
+            `;
+          })
+          .join('');
+      }
+
+      function renderStudentPanel() {
+        renderFlashcards();
+        renderQuizArena();
+        if (!wmCurrentQuestion) {
+          generateWordMatchQuestion();
+        }
+        renderLeaderboardTable();
+      }
+
+      function refreshAllViews() {
+        refreshHeaderAndStats();
+        renderFlashcards();
+        renderQuizArena();
+        renderLeaderboardTable();
+        if (currentUser && currentUser.role === 'teacher') {
+          renderTeacherPanel();
+        }
+      }
+
+      // =====================================================================
+      // АНХНЫ ЭХЛҮҮЛЭЛТ
+      // =====================================================================
+      populateRegistrationTeachers();
+      renderRegistrationClasses();
+      updateRegistrationRoleUI();
+
+      if (currentUser && currentUser.role && currentUser.name) {
+        if (currentUser.role === 'student') {
+          ensureStudentProfile(currentUser.name, currentUser.className, currentUser.teacherName);
+          currentUser.activeTab = 'student';
+          saveStorage(STORAGE_KEYS.CURRENT_USER, currentUser);
+          enterMainApp('student');
+        } else if (currentUser.role === 'teacher') {
+          const registeredTeacher = teachers.find(
+            (t) => t.id === currentUser.teacherId || t.name.toLowerCase() === currentUser.name.toLowerCase()
+          );
+          if (!registeredTeacher) {
+            teachers.unshift({
+              id: currentUser.teacherId || 't-' + Date.now(),
+              name: currentUser.name,
+              subject: currentUser.subject || '12-р ангийн Англи хэл'
+            });
+            saveStorage(STORAGE_KEYS.TEACHERS, teachers);
+            populateRegistrationTeachers();
+          }
+          enterMainApp(currentUser.activeTab || 'teacher');
+        }
+      } else {
+        document.getElementById('auth-screen').classList.remove('hidden');
+        document.getElementById('main-app').classList.add('hidden');
+      }
+    })();
+  </script>
+</body>
+</html>
